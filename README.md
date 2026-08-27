@@ -249,4 +249,15 @@ dotnet test
 
 ## Próximas Tarefas
 
-Nenhuma tarefa pendente! 🎉
+### NFS-e (Nota Fiscal de Serviço Eletrônica) - MEI
+- [ ] Definir município do MEI (determina webservice)
+- [ ] Obter token/credenciais do sistema de NFS-e
+- [ ] Configuração: CNPJ, Inscrição Municipal, CNAE, código serviço LC 116, alíquota ISS
+- [ ] Entidade NotaFiscalServico (número, série, valores, tomador, XML, status)
+- [ ] Montagem do XML da NFS-e
+- [ ] Integração com webservice (SOAP/REST)
+- [ ] Consulta de protocolo
+- [ ] Cancelamento de NFS-e
+- [ ] Tela de configuração fiscal
+- [ ] Botão "Emitir NFS-e" na OS concluída/entregue
+- [ ] Tela de consulta/monitoramento de NFS-e
