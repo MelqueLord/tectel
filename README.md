@@ -249,6 +249,18 @@ dotnet test
 
 ## Próximas Tarefas
 
+### Correções para Produção
+- [ ] Senha do admin via variável de ambiente (não hardcoded)
+- [ ] Email do admin configurável
+- [ ] Proteger seed de dados com flag de ambiente
+- [ ] MySQL como banco padrão em produção
+- [ ] Restringir AllowedHosts
+- [ ] HTTPS redirect
+- [ ] Rate limiting no login
+- [ ] Logging estruturado (Serilog)
+- [ ] Health check endpoint
+- [ ] Adicionar .db ao .gitignore
+
 ### NFS-e (Nota Fiscal de Serviço Eletrônica) - MEI - Salvador/BA
 - [x] Definir município do MEI → Salvador (sistema municipal SMS)
 - [ ] Obter token/credenciais do sistema de NFS-e
