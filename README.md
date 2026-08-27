@@ -249,8 +249,8 @@ dotnet test
 
 ## Próximas Tarefas
 
-### NFS-e (Nota Fiscal de Serviço Eletrônica) - MEI
-- [ ] Definir município do MEI (determina webservice)
+### NFS-e (Nota Fiscal de Serviço Eletrônica) - MEI - Salvador/BA
+- [x] Definir município do MEI → Salvador (sistema municipal SMS)
 - [ ] Obter token/credenciais do sistema de NFS-e
 - [ ] Configuração: CNPJ, Inscrição Municipal, CNAE, código serviço LC 116, alíquota ISS
 - [ ] Entidade NotaFiscalServico (número, série, valores, tomador, XML, status)
