@@ -1,0 +1,14 @@
+@{
+    var logoCaminho = ViewData["LogoCaminho"] as string;
+}
+
+@if (!string.IsNullOrEmpty(logoCaminho))
+{
+    <img src="@logoCaminho" alt="Logo" class="mb-2" style="max-height: 40px; max-width: 180px;" />
+}
+else
+{
+    <h5 class="text-white mb-0">
+        <i class="bi bi-tools me-2"></i>Assistência Técnica
+    </h5>
+}

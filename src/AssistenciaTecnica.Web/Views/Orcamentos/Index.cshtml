@@ -1,0 +1,149 @@
+@model IEnumerable<OrcamentoListagemDto>
+@{
+    ViewData["Title"] = "Orçamentos";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-bold">Orçamentos</h4>
+            <p class="text-muted mb-0">Gerencie orçamentos e propostas</p>
+        </div>
+        <a asp-action="Criar" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Novo Orçamento
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-semibold">Pesquisar</label>
+                    <input type="text" name="pesquisa" class="form-control" placeholder="Número, cliente, aparelho..."
+                           value="@ViewBag.Pesquisa" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Todos</option>
+                        @foreach (var status in Enum.GetValues<StatusOrcamento>())
+                        {
+                            <option value="@status" selected="@(ViewBag.StatusFiltro == status)">
+                                @(status switch
+                                {
+                                    StatusOrcamento.Rascunho => "Rascunho",
+                                    StatusOrcamento.Enviado => "Enviado",
+                                    StatusOrcamento.Aprovado => "Aprovado",
+                                    StatusOrcamento.Rejeitado => "Rejeitado",
+                                    StatusOrcamento.Convertido => "Convertido em OS",
+                                    StatusOrcamento.Expirado => "Expirado",
+                                    _ => status.ToString()
+                                })
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-search me-1"></i> Filtrar
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela -->
+    <div class="card">
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Cliente</th>
+                                <th class="hide-mobile">Aparelho</th>
+                                <th class="hide-mobile">Data</th>
+                                <th class="hide-mobile">Validade</th>
+                                <th>Status</th>
+                                <th>Valor</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var orcamento in Model)
+                            {
+                                <tr>
+                                    <td><strong>@orcamento.Numero</strong></td>
+                                    <td>@orcamento.ClienteNome</td>
+                                    <td class="hide-mobile">@orcamento.AparelhoDescricao</td>
+                                    <td class="hide-mobile">@orcamento.DataCriacao.ToString("dd/MM/yyyy")</td>
+                                    <td class="hide-mobile">
+                                        @if (orcamento.DataValidade.HasValue)
+                                        {
+                                            @orcamento.DataValidade.Value.ToString("dd/MM/yyyy")
+                                            @if (orcamento.DataValidade.Value < DateTime.UtcNow && orcamento.Status == StatusOrcamento.Enviado)
+                                            {
+                                                <span class="badge bg-danger ms-1">Vencido</span>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @switch (orcamento.Status)
+                                        {
+                                            case StatusOrcamento.Rascunho:
+                                                <span class="badge bg-secondary">@orcamento.StatusDescricao</span>
+                                                break;
+                                            case StatusOrcamento.Enviado:
+                                                <span class="badge bg-info">@orcamento.StatusDescricao</span>
+                                                break;
+                                            case StatusOrcamento.Aprovado:
+                                                <span class="badge bg-success">@orcamento.StatusDescricao</span>
+                                                break;
+                                            case StatusOrcamento.Rejeitado:
+                                                <span class="badge bg-danger">@orcamento.StatusDescricao</span>
+                                                break;
+                                            case StatusOrcamento.Convertido:
+                                                <span class="badge bg-primary">@orcamento.StatusDescricao</span>
+                                                break;
+                                            case StatusOrcamento.Expirado:
+                                                <span class="badge bg-warning text-dark">@orcamento.StatusDescricao</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="fw-bold">R$ @orcamento.ValorTotal.ToString("N2")</td>
+                                    <td>
+                                        <a asp-action="Detalhes" asp-route-id="@orcamento.Id"
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="bi bi-file-earmark-text d-block"></i>
+                    <h6>Nenhum orçamento encontrado</h6>
+                    <p class="text-muted">Crie o primeiro orçamento.</p>
+                    <a asp-action="Criar" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-1"></i> Novo Orçamento
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

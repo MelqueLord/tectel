@@ -1,0 +1,159 @@
+@model ClienteDto
+@{
+    ViewData["Title"] = "Detalhes do Cliente";
+}
+
+<div class="fade-in">
+    <div class="d-flex flex-wrap align-items-start gap-2 mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h4 class="mb-0">@Model.Nome</h4>
+            <p class="text-muted mb-0 small">Cliente desde @Model.DataCadastro.ToString("dd/MM/yyyy")</p>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-action="Historico" asp-route-id="@Model.Id" class="btn btn-outline-info btn-sm">
+            <i class="bi bi-clock-history me-1"></i>Histórico
+        </a>
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        @if (Model.Ativo)
+        {
+            <form asp-action="Inativar" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Deseja inativar este cliente?')">
+                    <i class="bi bi-person-dash me-1"></i>Inativar
+                </button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="Reativar" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-success btn-sm"
+                        onclick="return confirm('Deseja reativar este cliente?')">
+                    <i class="bi bi-person-check me-1"></i>Reativar
+                </button>
+            </form>
+        }
+    </div>
+
+    <div class="row g-4">
+        <!-- Status -->
+        <div class="col-12">
+            @if (Model.Ativo)
+            {
+                <span class="badge bg-success fs-6">Ativo</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary fs-6">Inativo</span>
+            }
+        </div>
+
+        <!-- Dados Pessoais -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-person me-2"></i>Dados Pessoais</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Nome</dt>
+                        <dd class="col-sm-8">@Model.Nome</dd>
+
+                        <dt class="col-sm-4">CPF/CNPJ</dt>
+                        <dd class="col-sm-8">@(Model.CpfCnpj ?? "-")</dd>
+
+                        <dt class="col-sm-4">E-mail</dt>
+                        <dd class="col-sm-8">@(Model.Email ?? "-")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contato -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-telephone me-2"></i>Contato</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Telefone</dt>
+                        <dd class="col-sm-8">@(Model.Telefone ?? "-")</dd>
+
+                        <dt class="col-sm-4">WhatsApp</dt>
+                        <dd class="col-sm-8">@(Model.WhatsApp ?? "-")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Endereço -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Endereço</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Endereço</dt>
+                        <dd class="col-sm-8">@(Model.Endereco ?? "-")</dd>
+
+                        <dt class="col-sm-4">Bairro</dt>
+                        <dd class="col-sm-8">@(Model.Bairro ?? "-")</dd>
+
+                        <dt class="col-sm-4">Cidade</dt>
+                        <dd class="col-sm-8">@(Model.Cidade ?? "-")</dd>
+
+                        <dt class="col-sm-4">Estado</dt>
+                        <dd class="col-sm-8">@(Model.Estado ?? "-")</dd>
+
+                        <dt class="col-sm-4">CEP</dt>
+                        <dd class="col-sm-8">@(Model.Cep ?? "-")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Observações -->
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Observações</h6>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(Model.Observacoes))
+                    {
+                        <p class="mb-0">@Model.Observacoes</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Nenhuma observação.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Datas -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <small class="text-muted">
+                        <i class="bi bi-calendar me-1"></i>
+                        Cadastrado em @Model.DataCadastro.ToString("dd/MM/yyyy HH:mm")
+                        @if (Model.DataAtualizacao.HasValue)
+                        {
+                            <span> | Atualizado em @Model.DataAtualizacao.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                        }
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

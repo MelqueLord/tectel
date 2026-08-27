@@ -1,0 +1,210 @@
+@model AparelhoDto
+@{
+    var ordens = ViewData["Ordens"] as IEnumerable<OrdemServicoListagemDto> ?? [];
+}
+
+<div class="fade-in">
+    <div class="d-flex flex-wrap align-items-start gap-2 mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h4 class="mb-0">@Model.Marca @Model.Modelo</h4>
+            <p class="text-muted mb-0 small">Detalhes do aparelho</p>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        <a asp-controller="OrdensServico" asp-action="Criar"
+           asp-route-clienteId="@Model.ClienteId" asp-route-aparelhoId="@Model.Id"
+           class="btn btn-success btn-sm">
+            <i class="bi bi-clipboard-plus me-1"></i>Nova OS
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-person me-2"></i>Cliente</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Nome</dt>
+                        <dd class="col-sm-8">
+                            <a asp-controller="Clientes" asp-action="Detalhes" asp-route-id="@Model.ClienteId">
+                                @Model.ClienteNome
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-phone me-2"></i>Aparelho</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Tipo</dt>
+                        <dd class="col-sm-8">@Model.Tipo</dd>
+
+                        <dt class="col-sm-4">Marca</dt>
+                        <dd class="col-sm-8">@Model.Marca</dd>
+
+                        <dt class="col-sm-4">Modelo</dt>
+                        <dd class="col-sm-8">@Model.Modelo</dd>
+
+                        <dt class="col-sm-4">Cor</dt>
+                        <dd class="col-sm-8">@(Model.Cor ?? "-")</dd>
+
+                        <dt class="col-sm-4">IMEI</dt>
+                        <dd class="col-sm-8">@(Model.Imei ?? "-")</dd>
+
+                        <dt class="col-sm-4">Nº Série</dt>
+                        <dd class="col-sm-8">@(Model.NumeroSerie ?? "-")</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Estado na Entrada</h6>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(Model.EstadoAparelho))
+                    {
+                        <p class="mb-0">@Model.EstadoAparelho</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Nenhuma informação registrada.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-box me-2"></i>Itens Entregues</h6>
+                </div>
+                <div class="card-body">
+                    @if (!string.IsNullOrWhiteSpace(Model.ItensEntregues))
+                    {
+                        <p class="mb-0">@Model.ItensEntregues</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Nenhum item registrado.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Observacoes))
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Observações</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@Model.Observacoes</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Histórico de Ordens de Serviço</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (ordens.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Defeito</th>
+                                        <th>Entrada</th>
+                                        <th>Status</th>
+                                        <th>Valor</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ordem in ordens)
+                                    {
+                                        <tr>
+                                            <td><strong>@ordem.Numero</strong></td>
+                                            <td>@ordem.DefeitoRelatado</td>
+                                            <td>@ordem.DataEntrada.ToString("dd/MM/yyyy")</td>
+                                            <td>
+                                                @switch (ordem.Status)
+                                                {
+                                                    case StatusOrdemServico.Aberta:
+                                                        <span class="badge bg-primary">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.EmAnalise:
+                                                        <span class="badge bg-info">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.AguardandoAprovacao:
+                                                        <span class="badge bg-warning text-dark">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.EmManutencao:
+                                                        <span class="badge bg-orange text-dark" style="background-color: #fd7e14;">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.Concluida:
+                                                        <span class="badge bg-success">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.Entregue:
+                                                        <span class="badge bg-secondary">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.Cancelada:
+                                                        <span class="badge bg-danger">@ordem.StatusDescricao</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>R$ @ordem.ValorTotal.ToString("N2")</td>
+                                            <td>
+                                                <a asp-controller="OrdensServico" asp-action="Detalhes" asp-route-id="@ordem.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state py-4">
+                            <i class="bi bi-clipboard d-block"></i>
+                            <h6>Nenhuma ordem de serviço</h6>
+                            <p class="text-muted">Este aparelho ainda não possui ordens de serviço.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <small class="text-muted">
+                <i class="bi bi-calendar me-1"></i>
+                Cadastrado em @Model.DataCadastro.ToString("dd/MM/yyyy HH:mm")
+            </small>
+        </div>
+    </div>
+</div>

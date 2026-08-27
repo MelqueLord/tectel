@@ -1,0 +1,285 @@
+@model RelatorioDashboardDto
+@{
+    ViewData["Title"] = "Relatórios";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-bold">Relatórios e Gráficos</h4>
+            <p class="text-muted mb-0">Visão geral do desempenho do negócio</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="Faturamento" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-graph-up me-1"></i> Faturamento
+            </a>
+            <a asp-action="OrdensPorStatus" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-pie-chart me-1"></i> Ordens por Status
+            </a>
+            <a asp-action="Pagamentos" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-credit-card me-1"></i> Pagamentos
+            </a>
+            <a asp-action="TopClientes" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-trophy me-1"></i> Top Clientes
+            </a>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Faturamento (12 meses)</p>
+                            <h3 class="mb-0 fw-bold text-success">R$ @Model.Faturamento.FaturamentoTotal.ToString("N2")</h3>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Ticket Médio</p>
+                            <h3 class="mb-0 fw-bold text-primary">R$ @Model.Faturamento.TicketMedio.ToString("N2")</h3>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Total de Ordens</p>
+                            <h3 class="mb-0 fw-bold text-info">@Model.OrdensPorStatus.TotalOrdens</h3>
+                        </div>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Total Pago</p>
+                            <h3 class="mb-0 fw-bold text-warning">R$ @Model.Pagamentos.TotalPago.ToString("N2")</h3>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row g-4">
+        <!-- Gráfico de Faturamento -->
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Faturamento por Mês</h6>
+                    <a asp-action="Faturamento" class="btn btn-sm btn-outline-primary">Ver Detalhes</a>
+                </div>
+                <div class="card-body">
+                    <canvas id="faturamentoChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Ordens por Status -->
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Ordens por Status</h6>
+                    <a asp-action="OrdensPorStatus" class="btn btn-sm btn-outline-primary">Ver Detalhes</a>
+                </div>
+                <div class="card-body">
+                    <canvas id="ordensStatusChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico de Pagamentos por Forma -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Pagamentos por Forma</h6>
+                    <a asp-action="Pagamentos" class="btn btn-sm btn-outline-primary">Ver Detalhes</a>
+                </div>
+                <div class="card-body">
+                    <canvas id="pagamentosChart" height="300"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Clientes -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-trophy me-2"></i>Top Clientes</h6>
+                    <a asp-action="TopClientes" class="btn btn-sm btn-outline-primary">Ver Detalhes</a>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.TopClientes.TopClientes.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Cliente</th>
+                                        <th>Ordens</th>
+                                        <th>Total Gasto</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{var rank = 1;}
+                                    @foreach (var cliente in Model.TopClientes.TopClientes)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (rank <= 3)
+                                                {
+                                                    <span class="badge bg-warning text-dark">@rank</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">@rank</span>
+                                                }
+                                            </td>
+                                            <td><strong>@cliente.Nome</strong></td>
+                                            <td>@cliente.TotalOrdens</td>
+                                            <td class="text-success fw-bold">R$ @cliente.TotalGasto.ToString("N2")</td>
+                                        </tr>
+                                        rank++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-people text-muted fs-1"></i>
+                            <p class="text-muted mt-2">Nenhum cliente encontrado</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Gráfico de Faturamento
+        const faturamentoCtx = document.getElementById('faturamentoChart').getContext('2d');
+        new Chart(faturamentoCtx, {
+            type: 'bar',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.Faturamento.FaturamentoPorPeriodo.Select(p => p.Periodo))),
+                datasets: [{
+                    label: 'Faturamento (R$)',
+                    data: @Html.Raw(Json.Serialize(Model.Faturamento.FaturamentoPorPeriodo.Select(p => p.Valor))),
+                    backgroundColor: 'rgba(13, 110, 253, 0.5)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Ordens por Status
+        const ordensCtx = document.getElementById('ordensStatusChart').getContext('2d');
+        new Chart(ordensCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.OrdensPorStatus.OrdensPorStatus.Select(o => o.Status))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.OrdensPorStatus.OrdensPorStatus.Select(o => o.Quantidade))),
+                    backgroundColor: @Html.Raw(Json.Serialize(Model.OrdensPorStatus.OrdensPorStatus.Select(o => o.Cor))),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Pagamentos por Forma
+        const pagamentosCtx = document.getElementById('pagamentosChart').getContext('2d');
+        new Chart(pagamentosCtx, {
+            type: 'pie',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.Pagamentos.PagamentosPorForma.Select(p => p.FormaPagamento))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.Pagamentos.PagamentosPorForma.Select(p => p.Valor))),
+                    backgroundColor: @Html.Raw(Json.Serialize(Model.Pagamentos.PagamentosPorForma.Select(p => p.Cor))),
+                    borderWidth: 2,
+                    borderColor: '#fff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 15,
+                            usePointStyle: true
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

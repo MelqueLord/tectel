@@ -1,0 +1,107 @@
+@model TecnicoDto
+
+<div class="fade-in">
+    <div class="d-flex flex-wrap align-items-start gap-2 mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h4 class="mb-0">
+                @Model.Nome
+                @if (Model.Ativo)
+                {
+                    <span class="badge bg-success ms-2">Ativo</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary ms-2">Inativo</span>
+                }
+            </h4>
+            <p class="text-muted mb-0 small">
+                Cadastrado em: @Model.DataCadastro.ToString("dd/MM/yyyy")
+                @if (Model.DataAtualizacao.HasValue)
+                {
+                    <span> | Atualizado: @Model.DataAtualizacao.Value.ToString("dd/MM/yyyy")</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+        @if (Model.Ativo)
+        {
+            <form asp-action="Inativar" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Deseja inativar este técnico?')">
+                    <i class="bi bi-person-dash me-1"></i>Inativar
+                </button>
+            </form>
+        }
+        else
+        {
+            <form asp-action="Reativar" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-person-check me-1"></i>Reativar
+                </button>
+            </form>
+        }
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-person-gear me-2"></i>Dados do Técnico</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Nome</dt>
+                        <dd class="col-sm-8">@Model.Nome</dd>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Especialidade))
+                        {
+                            <dt class="col-sm-4">Especialidade</dt>
+                            <dd class="col-sm-8">@Model.Especialidade</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-telephone me-2"></i>Contato</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        @if (!string.IsNullOrWhiteSpace(Model.Telefone))
+                        {
+                            <dt class="col-sm-4">Telefone</dt>
+                            <dd class="col-sm-8">@Model.Telefone</dd>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.WhatsApp))
+                        {
+                            <dt class="col-sm-4">WhatsApp</dt>
+                            <dd class="col-sm-8">@Model.WhatsApp</dd>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(Model.Email))
+                        {
+                            <dt class="col-sm-4">E-mail</dt>
+                            <dd class="col-sm-8">@Model.Email</dd>
+                        }
+                        @if (string.IsNullOrWhiteSpace(Model.Telefone) && string.IsNullOrWhiteSpace(Model.WhatsApp) && string.IsNullOrWhiteSpace(Model.Email))
+                        {
+                            <dd class="col-sm-12 text-muted">Nenhum contato cadastrado.</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

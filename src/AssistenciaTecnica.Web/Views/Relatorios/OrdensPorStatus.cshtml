@@ -1,0 +1,138 @@
+@model RelatorioOrdensStatusDto
+@{
+    ViewData["Title"] = "Ordens por Status";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-bold">Ordens por Status</h4>
+            <p class="text-muted mb-0">Distribuição das ordens de serviço por status atual</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+
+    <div class="row g-4">
+        <!-- Gráfico -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-pie-chart me-2"></i>Distribuição por Status</h6>
+                </div>
+                <div class="card-body">
+                    <canvas id="ordensStatusChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela -->
+        <div class="col-lg-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-table me-2"></i>Detalhamento</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.OrdensPorStatus.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Status</th>
+                                        <th>Quantidade</th>
+                                        <th>Percentual</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var status in Model.OrdensPorStatus)
+                                    {
+                                        var percentual = Model.TotalOrdens > 0 ? (decimal)status.Quantidade / Model.TotalOrdens * 100 : 0;
+                                        <tr>
+                                            <td>
+                                                <span class="d-inline-block rounded-circle me-2" style="width: 12px; height: 12px; background-color: @status.Cor;"></span>
+                                                <strong>@status.Status</strong>
+                                            </td>
+                                            <td>@status.Quantidade</td>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="progress flex-grow-1 me-2" style="height: 8px;">
+                                                        <div class="progress-bar" style="width: @percentual.ToString("F0")%; background-color: @status.Cor;"></div>
+                                                    </div>
+                                                    <span class="text-muted small">@percentual.ToString("F1")%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-active">
+                                        <td><strong>Total</strong></td>
+                                        <td><strong>@Model.TotalOrdens</strong></td>
+                                        <td><strong>100%</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-check text-muted fs-1"></i>
+                            <p class="text-muted mt-2">Nenhuma ordem cadastrada</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('ordensStatusChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.OrdensPorStatus.Select(o => o.Status))),
+                datasets: [{
+                    data: @Html.Raw(Json.Serialize(Model.OrdensPorStatus.Select(o => o.Quantidade))),
+                    backgroundColor: @Html.Raw(Json.Serialize(Model.OrdensPorStatus.Select(o => o.Cor))),
+                    borderWidth: 3,
+                    borderColor: '#fff',
+                    hoverBorderWidth: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '60%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true,
+                            pointStyleWidth: 12,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const value = context.parsed;
+                                const percentage = ((value / total) * 100).toFixed(1);
+                                return context.label + ': ' + value + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

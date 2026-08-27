@@ -1,0 +1,209 @@
+@model EditarOrcamentoDto
+@{
+    ViewData["Title"] = "Editar Orçamento";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-bold">Editar Orçamento</h4>
+            <p class="text-muted mb-0">@ViewBag.ClienteNome - @ViewBag.AparelhoDescricao</p>
+        </div>
+        <a asp-action="Detalhes" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+
+    <form asp-action="Editar" method="post">
+        <input type="hidden" asp-for="Id" />
+        <div class="row g-4">
+            <!-- Itens do Orçamento -->
+            <div class="col-lg-8">
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-list-check me-2"></i>Itens do Orçamento</h6>
+                        <button type="button" class="btn btn-sm btn-success" onclick="adicionarItem()">
+                            <i class="bi bi-plus-lg me-1"></i> Adicionar Item
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="itensTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 15%">Tipo</th>
+                                        <th style="width: 40%">Descrição</th>
+                                        <th style="width: 12%">Qtd</th>
+                                        <th style="width: 18%">Valor Unit.</th>
+                                        <th style="width: 10%">Subtotal</th>
+                                        <th style="width: 5%"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itensBody">
+                                    @for (var i = 0; i < Model.Itens.Count; i++)
+                                    {
+                                        <tr class="item-row">
+                                            <td>
+                                                <select asp-for="Itens[i].Tipo" class="form-select form-select-sm">
+                                                    <option value="0">Serviço</option>
+                                                    <option value="1">Peça</option>
+                                                </select>
+                                            </td>
+                                            <td>
+                                                <input asp-for="Itens[i].Descricao" class="form-control form-control-sm" />
+                                            </td>
+                                            <td>
+                                                <input asp-for="Itens[i].Quantidade" class="form-control form-control-sm" type="number" min="1" onchange="calcularSubtotais()" />
+                                            </td>
+                                            <td>
+                                                <input asp-for="Itens[i].ValorUnitario" class="form-control form-control-sm valor-input" type="number" step="0.01" min="0" onchange="calcularSubtotais()" />
+                                            </td>
+                                            <td class="subtotal-cell fw-bold text-success">R$ 0,00</td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerItem(this)">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resumo -->
+            <div class="col-lg-4">
+                <div class="card sticky-top" style="top: 80px;">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Resumo</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Validade</label>
+                            <input asp-for="DataValidade" class="form-control" type="date" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Desconto (R$)</label>
+                            <input asp-for="Desconto" class="form-control" type="number" step="0.01" min="0" onchange="calcularSubtotais()" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Observações</label>
+                            <textarea asp-for="Observacoes" class="form-control" rows="3"></textarea>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Serviços:</span>
+                            <span id="totalServicos" class="fw-bold">R$ 0,00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Peças:</span>
+                            <span id="totalPecas" class="fw-bold">R$ 0,00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Desconto:</span>
+                            <span id="totalDesconto" class="fw-bold text-danger">- R$ 0,00</span>
+                        </div>
+                        <hr />
+                        <div class="d-flex justify-content-between">
+                            <span class="fs-5 fw-bold">Total:</span>
+                            <span id="totalGeral" class="fs-5 fw-bold text-success">R$ 0,00</span>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-check-lg me-1"></i> Salvar Alterações
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        let itemIndex = @Model.Itens.Count;
+
+        function adicionarItem() {
+            const tbody = document.getElementById('itensBody');
+            const row = document.createElement('tr');
+            row.className = 'item-row';
+            row.innerHTML = `
+                <td>
+                    <select name="Itens[${itemIndex}].Tipo" class="form-select form-select-sm">
+                        <option value="0">Serviço</option>
+                        <option value="1">Peça</option>
+                    </select>
+                </td>
+                <td>
+                    <input name="Itens[${itemIndex}].Descricao" class="form-control form-control-sm" placeholder="Descrição do item" />
+                </td>
+                <td>
+                    <input name="Itens[${itemIndex}].Quantidade" class="form-control form-control-sm" type="number" min="1" value="1" onchange="calcularSubtotais()" />
+                </td>
+                <td>
+                    <input name="Itens[${itemIndex}].ValorUnitario" class="form-control form-control-sm valor-input" type="number" step="0.01" min="0" value="0" onchange="calcularSubtotais()" />
+                </td>
+                <td class="subtotal-cell fw-bold text-success">R$ 0,00</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="removerItem(this)">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+            itemIndex++;
+        }
+
+        function removerItem(btn) {
+            const rows = document.querySelectorAll('.item-row');
+            if (rows.length <= 1) {
+                alert('O orçamento deve ter pelo menos um item.');
+                return;
+            }
+            btn.closest('tr').remove();
+            reindexarItens();
+            calcularSubtotais();
+        }
+
+        function reindexarItens() {
+            const rows = document.querySelectorAll('.item-row');
+            rows.forEach((row, i) => {
+                row.querySelectorAll('select, input').forEach(el => {
+                    if (el.name) {
+                        el.name = el.name.replace(/Itens\[\d+\]/, `Itens[${i}]`);
+                    }
+                });
+            });
+            itemIndex = rows.length;
+        }
+
+        function calcularSubtotais() {
+            let totalServicos = 0;
+            let totalPecas = 0;
+
+            document.querySelectorAll('.item-row').forEach(row => {
+                const tipo = row.querySelector('select').value;
+                const qtd = parseFloat(row.querySelector('input[type="number"]')?.value) || 0;
+                const valor = parseFloat(row.querySelector('.valor-input')?.value) || 0;
+                const subtotal = qtd * valor;
+
+                row.querySelector('.subtotal-cell').textContent = 'R$ ' + subtotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+
+                if (tipo === '0') totalServicos += subtotal;
+                else totalPecas += subtotal;
+            });
+
+            const desconto = parseFloat(document.querySelector('[name="Desconto"]')?.value) || 0;
+
+            document.getElementById('totalServicos').textContent = 'R$ ' + totalServicos.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('totalPecas').textContent = 'R$ ' + totalPecas.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('totalDesconto').textContent = '- R$ ' + desconto.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+            document.getElementById('totalGeral').textContent = 'R$ ' + (totalServicos + totalPecas - desconto).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+        }
+
+        calcularSubtotais();
+    </script>
+}

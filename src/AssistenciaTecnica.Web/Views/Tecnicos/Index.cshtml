@@ -1,0 +1,121 @@
+@model IEnumerable<TecnicoListagemDto>
+@{
+    var pesquisa = ViewData["Pesquisa"] as string;
+    var situacao = ViewData["Situacao"] as string;
+}
+
+<div class="fade-in">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-0">Técnicos</h4>
+            <p class="text-muted mb-0">Gerencie os técnicos da assistência.</p>
+        </div>
+        <a asp-action="Criar" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Novo Técnico
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form asp-action="Index" method="get" class="row g-3">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="pesquisa" class="form-control" placeholder="Buscar por nome, especialidade, telefone..."
+                               value="@pesquisa">
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select name="situacao" class="form-select">
+                        <option value="" selected="@(string.IsNullOrEmpty(situacao))">Ativos</option>
+                        <option value="inativos" selected="@(situacao == "inativos")">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (Model.Any())
+    {
+        <div class="card">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Especialidade</th>
+                            <th>Telefone</th>
+                            <th>WhatsApp</th>
+                            <th>Status</th>
+                            <th class="text-end">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var tecnico in Model)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-action="Detalhes" asp-route-id="@tecnico.Id" class="text-decoration-none fw-medium">
+                                        @tecnico.Nome
+                                    </a>
+                                </td>
+                                <td>@(tecnico.Especialidade ?? "-")</td>
+                                <td>@(tecnico.Telefone ?? "-")</td>
+                                <td>@(tecnico.WhatsApp ?? "-")</td>
+                                <td>
+                                    @if (tecnico.Ativo)
+                                    {
+                                        <span class="badge bg-success">Ativo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">Inativo</span>
+                                    }
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="Editar" asp-route-id="@tecnico.Id" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    @if (tecnico.Ativo)
+                                    {
+                                        <form asp-action="Inativar" asp-route-id="@tecnico.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                    onclick="return confirm('Deseja inativar este técnico?')">
+                                                <i class="bi bi-person-dash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="Reativar" asp-route-id="@tecnico.Id" method="post" class="d-inline">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                                <i class="bi bi-person-check"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-person-gear fs-1 text-muted"></i>
+                <p class="text-muted mt-2 mb-0">Nenhum técnico encontrado.</p>
+                <a asp-action="Criar" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-lg me-2"></i>Cadastrar Técnico
+                </a>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,195 @@
+@model RelatorioFaturamentoDto
+@{
+    ViewData["Title"] = "Relatório de Faturamento";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="mb-1 fw-bold">Relatório de Faturamento</h4>
+            <p class="text-muted mb-0">Análise detalhada do faturamento por período</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Voltar
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Data Início</label>
+                    <input type="date" name="dataInicio" class="form-control" value="@Model.DataInicio.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Data Fim</label>
+                    <input type="date" name="dataFim" class="form-control" value="@Model.DataFim.ToString("yyyy-MM-dd")" />
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search me-1"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Faturamento Total</p>
+                            <h3 class="mb-0 fw-bold text-success">R$ @Model.FaturamentoTotal.ToString("N2")</h3>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Ticket Médio</p>
+                            <h3 class="mb-0 fw-bold text-primary">R$ @Model.TicketMedio.ToString("N2")</h3>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-receipt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Total de Ordens</p>
+                            <h3 class="mb-0 fw-bold text-info">@Model.TotalOrdens</h3>
+                        </div>
+                        <div class="stat-icon bg-info bg-opacity-10 text-info">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Faturamento por Mês</h6>
+        </div>
+        <div class="card-body">
+            <canvas id="faturamentoChart" height="300"></canvas>
+        </div>
+    </div>
+
+    <!-- Tabela Detalhada -->
+    <div class="card">
+        <div class="card-header">
+            <h6 class="mb-0"><i class="bi bi-table me-2"></i>Detalhamento por Período</h6>
+        </div>
+        <div class="card-body p-0">
+            @if (Model.FaturamentoPorPeriodo.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Período</th>
+                                <th>Quantidade de Ordens</th>
+                                <th>Faturamento</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var periodo in Model.FaturamentoPorPeriodo)
+                            {
+                                <tr>
+                                    <td><strong>@periodo.Periodo</strong></td>
+                                    <td>@periodo.Quantidade</td>
+                                    <td class="text-success fw-bold">R$ @periodo.Valor.ToString("N2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-active">
+                                <td><strong>Total</strong></td>
+                                <td><strong>@Model.TotalOrdens</strong></td>
+                                <td class="text-success fw-bold"><strong>R$ @Model.FaturamentoTotal.ToString("N2")</strong></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="bi bi-graph-up text-muted fs-1"></i>
+                    <p class="text-muted mt-2">Nenhum faturamento no período selecionado</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const ctx = document.getElementById('faturamentoChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(Json.Serialize(Model.FaturamentoPorPeriodo.Select(p => p.Periodo))),
+                datasets: [{
+                    label: 'Faturamento (R$)',
+                    data: @Html.Raw(Json.Serialize(Model.FaturamentoPorPeriodo.Select(p => p.Valor))),
+                    fill: true,
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderColor: 'rgba(13, 110, 253, 1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return 'R$ ' + context.parsed.y.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return 'R$ ' + value.toLocaleString('pt-BR');
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}

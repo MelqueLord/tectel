@@ -1,0 +1,132 @@
+@model IEnumerable<ProdutoListagemDto>
+@{
+    var pesquisa = ViewData["Pesquisa"] as string;
+    var filtro = ViewData["Filtro"] as string ?? "ativos";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <p class="text-muted mb-0">Gerencie os produtos e peças da assistência.</p>
+        </div>
+        <a asp-action="Criar" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Novo Produto
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="pesquisa" class="form-control"
+                               placeholder="Pesquisar por código, nome, categoria..."
+                               value="@pesquisa">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="filtro" class="form-select">
+                        <option value="ativos" selected="@(filtro == "ativos")">Ativos</option>
+                        <option value="estoque-baixo" selected="@(filtro == "estoque-baixo")">Estoque Baixo</option>
+                        <option value="todos" selected="@(filtro == "todos")">Todos</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Código</th>
+                                <th>Produto</th>
+                                <th class="hide-mobile">Categoria</th>
+                                <th>Preço</th>
+                                <th>Estoque</th>
+                                <th class="hide-mobile">Mínimo</th>
+                                <th>Situação</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var produto in Model)
+                            {
+                                <tr class="@(produto.EstoqueBaixo ? "table-warning" : "")">
+                                    <td><strong>@produto.Codigo</strong></td>
+                                    <td>@produto.Nome</td>
+                                    <td class="hide-mobile">@(produto.Categoria ?? "-")</td>
+                                    <td>R$ @produto.PrecoVenda.ToString("N2")</td>
+                                    <td>
+                                        <span class="@(produto.EstoqueBaixo ? "text-danger fw-bold" : "")">
+                                            @produto.QuantidadeEstoque
+                                        </span>
+                                    </td>
+                                    <td class="hide-mobile">@produto.EstoqueMinimo</td>
+                                    <td>
+                                        @if (produto.EstoqueBaixo)
+                                        {
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>Baixo
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">OK</span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a asp-action="Detalhes" asp-route-id="@produto.Id"
+                                               class="btn btn-sm btn-outline-primary" title="Visualizar">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Editar" asp-route-id="@produto.Id"
+                                               class="btn btn-sm btn-outline-secondary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <a asp-controller="Estoque" asp-action="Movimentacao" asp-route-produtoId="@produto.Id"
+                                               class="btn btn-sm btn-outline-info" title="Estoque">
+                                                <i class="bi bi-arrow-left-right"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="bi bi-box-seam d-block"></i>
+                    <h6>Nenhum produto encontrado</h6>
+                    <p class="text-muted">
+                        @if (!string.IsNullOrWhiteSpace(pesquisa))
+                        {
+                            <span>Nenhum resultado para "@pesquisa".</span>
+                        }
+                        else
+                        {
+                            <span>Cadastre o primeiro produto da assistência.</span>
+                        }
+                    </p>
+                    <a asp-action="Criar" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-2"></i>Cadastrar Produto
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

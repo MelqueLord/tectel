@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Assistência Técnica</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <style>
+        @@media print {
+            body {
+                font-size: 12pt;
+                color: #000;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-border {
+                border: 2px solid #000 !important;
+            }
+            .print-border-light {
+                border: 1px solid #ccc !important;
+            }
+        }
+        body {
+            padding: 20px;
+        }
+        .print-header {
+            border-bottom: 3px solid #000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .print-section {
+            margin-bottom: 15px;
+        }
+        .print-section-title {
+            background-color: #f0f0f0;
+            padding: 8px 12px;
+            font-weight: bold;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+        }
+        .print-field {
+            margin-bottom: 5px;
+        }
+        .print-field-label {
+            font-weight: bold;
+            color: #333;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 250px;
+            margin-top: 60px;
+            padding-top: 5px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print mb-3 text-center">
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="bi bi-printer me-2"></i>Imprimir
+        </button>
+        <button onclick="window.close()" class="btn btn-outline-secondary ms-2">
+            Fechar
+        </button>
+    </div>
+
+    @RenderBody()
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,140 @@
+@model AgendamentoFormDto
+@{
+    var clientes = ViewData["Clientes"] as IEnumerable<ClienteListagemDto> ?? [];
+}
+
+<div class="fade-in">
+    <div class="d-flex align-items-center mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">@ViewData["Title"]</h4>
+        </div>
+    </div>
+
+    <form asp-action="@(Model.Id > 0 ? "Editar" : "Criar")" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="Id" />
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"
+             style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")">
+        </div>
+
+        <div class="row g-4">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Dados do Agendamento</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <label asp-for="Titulo" class="form-label">Título <span class="text-danger">*</span></label>
+                                <input asp-for="Titulo" class="form-control" placeholder="Ex: Entrega - João Silva" required />
+                                <span asp-validation-for="Titulo" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Tipo" class="form-label">Tipo <span class="text-danger">*</span></label>
+                                <select asp-for="Tipo" class="form-select" asp-items="Html.GetEnumSelectList<TipoAgendamento>()">
+                                </select>
+                            </div>
+
+                            @if (Model.Id > 0)
+                            {
+                                <div class="col-md-6">
+                                    <label asp-for="Status" class="form-label">Status</label>
+                                    <select asp-for="Status" class="form-select" asp-items="Html.GetEnumSelectList<StatusAgendamento>()">
+                                    </select>
+                                </div>
+                            }
+
+                            <div class="col-md-6">
+                                <label asp-for="ClienteId" class="form-label">Cliente</label>
+                                <select asp-for="ClienteId" class="form-select">
+                                    <option value="">Selecione (opcional)</option>
+                                    @foreach (var cliente in clientes)
+                                    {
+                                        <option value="@cliente.Id">@cliente.Nome</option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="OrdemServicoId" class="form-label">Ordem de Serviço</label>
+                                <input asp-for="OrdemServicoId" class="form-control" type="number" placeholder="Nº da OS (opcional)" />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="DataInicio" class="form-label">Data Início <span class="text-danger">*</span></label>
+                                <input asp-for="DataInicio" class="form-control" type="date" required />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="HoraInicio" class="form-label">Hora Início <span class="text-danger">*</span></label>
+                                <input asp-for="HoraInicio" class="form-control" type="time" required />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="DataFim" class="form-label">Data Fim <span class="text-danger">*</span></label>
+                                <input asp-for="DataFim" class="form-control" type="date" required />
+                            </div>
+
+                            <div class="col-md-3">
+                                <label asp-for="HoraFim" class="form-label">Hora Fim <span class="text-danger">*</span></label>
+                                <input asp-for="HoraFim" class="form-control" type="time" required />
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Descricao" class="form-label">Descrição</label>
+                                <textarea asp-for="Descricao" class="form-control" rows="3" placeholder="Detalhes do agendamento..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Legenda</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge me-2" style="background-color: #198754;">&nbsp;</span>
+                            <span>Entrega</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge me-2" style="background-color: #0d6efd;">&nbsp;</span>
+                            <span>Revisão</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge me-2" style="background-color: #6c757d;">&nbsp;</span>
+                            <span>Retirada</span>
+                        </div>
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="badge me-2" style="background-color: #fd7e14;">&nbsp;</span>
+                            <span>Manutenção</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <span class="badge me-2" style="background-color: #6f42c1;">&nbsp;</span>
+                            <span>Outro</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-4">
+            <a asp-action="Index" class="btn btn-outline-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>@(Model.Id > 0 ? "Atualizar" : "Criar Agendamento")
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

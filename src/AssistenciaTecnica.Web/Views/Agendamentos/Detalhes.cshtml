@@ -1,0 +1,152 @@
+@model AgendamentoDto
+
+<div class="fade-in">
+    <div class="d-flex flex-wrap align-items-start gap-2 mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h4 class="mb-0">
+                @Model.Titulo
+                @switch (Model.Status)
+                {
+                    case StatusAgendamento.Agendado:
+                        <span class="badge bg-primary ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusAgendamento.Confirmado:
+                        <span class="badge bg-info ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusAgendamento.Concluido:
+                        <span class="badge bg-success ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusAgendamento.Cancelado:
+                        <span class="badge bg-danger ms-2">@Model.StatusDescricao</span>
+                        break;
+                }
+            </h4>
+        </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+
+        @if (Model.Status == StatusAgendamento.Agendado)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="Confirmado" />
+                <button type="submit" class="btn btn-info btn-sm text-white">
+                    <i class="bi bi-check-circle me-1"></i>Confirmar
+                </button>
+            </form>
+        }
+        else if (Model.Status == StatusAgendamento.Confirmado)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="Concluido" />
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="bi bi-check-circle me-1"></i>Concluir
+                </button>
+            </form>
+        }
+
+        @if (Model.Status != StatusAgendamento.Cancelado && Model.Status != StatusAgendamento.Concluido)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="Cancelado" />
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Deseja cancelar este agendamento?')">
+                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                </button>
+            </form>
+        }
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Detalhes</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Tipo</dt>
+                        <dd class="col-sm-9">
+                            @switch (Model.Tipo)
+                            {
+                                case TipoAgendamento.Entrega:
+                                    <span class="badge bg-success">Entrega</span>
+                                    break;
+                                case TipoAgendamento.Revisao:
+                                    <span class="badge bg-primary">Revisão</span>
+                                    break;
+                                case TipoAgendamento.Retirada:
+                                    <span class="badge bg-secondary">Retirada</span>
+                                    break;
+                                case TipoAgendamento.Manutencao:
+                                    <span class="badge" style="background-color: #fd7e14;">Manutenção</span>
+                                    break;
+                                default:
+                                    <span class="badge bg-purple">Outro</span>
+                                    break;
+                            }
+                        </dd>
+
+                        <dt class="col-sm-3">Data/Hora Início</dt>
+                        <dd class="col-sm-9">@Model.DataInicio.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-3">Data/Hora Fim</dt>
+                        <dd class="col-sm-9">@Model.DataFim.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                        @if (!string.IsNullOrWhiteSpace(Model.Descricao))
+                        {
+                            <dt class="col-sm-3">Descrição</dt>
+                            <dd class="col-sm-9">@Model.Descricao</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-link-45deg me-2"></i>Vinculado a</h6>
+                </div>
+                <div class="card-body">
+                    @if (Model.OrdemServicoId.HasValue)
+                    {
+                        <div class="mb-3">
+                            <small class="text-muted">Ordem de Serviço</small>
+                            <p class="mb-0">
+                                <a asp-controller="OrdensServico" asp-action="Detalhes" asp-route-id="@Model.OrdemServicoId">
+                                    @Model.OrdemServicoNumero
+                                </a>
+                            </p>
+                        </div>
+                    }
+
+                    @if (Model.ClienteId.HasValue)
+                    {
+                        <div>
+                            <small class="text-muted">Cliente</small>
+                            <p class="mb-0">
+                                <a asp-controller="Clientes" asp-action="Detalhes" asp-route-id="@Model.ClienteId">
+                                    @Model.ClienteNome
+                                </a>
+                            </p>
+                        </div>
+                    }
+
+                    @if (!Model.OrdemServicoId.HasValue && !Model.ClienteId.HasValue)
+                    {
+                        <p class="text-muted mb-0">Nenhum vínculo.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

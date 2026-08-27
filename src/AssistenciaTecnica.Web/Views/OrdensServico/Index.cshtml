@@ -1,0 +1,147 @@
+@model IEnumerable<OrdemServicoListagemDto>
+@{
+    var pesquisa = ViewData["Pesquisa"] as string;
+    var status = ViewData["Status"] as string;
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <p class="text-muted mb-0">Acompanhe os atendimentos da assistência técnica.</p>
+        </div>
+        <a asp-action="Criar" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-2"></i>Nova Ordem
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" name="pesquisa" class="form-control"
+                               placeholder="Pesquisar por número, cliente, marca, modelo, IMEI..."
+                               value="@pesquisa">
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <select name="status" class="form-select">
+                        <option value="">Todos os status</option>
+                        <option value="Aberta" selected="@(status == "Aberta")">Aberta</option>
+                        <option value="EmAnalise" selected="@(status == "EmAnalise")">Em Análise</option>
+                        <option value="AguardandoAprovacao" selected="@(status == "AguardandoAprovacao")">Aguardando Aprovação</option>
+                        <option value="EmManutencao" selected="@(status == "EmManutencao")">Em Manutenção</option>
+                        <option value="Concluida" selected="@(status == "Concluida")">Concluída</option>
+                        <option value="Entregue" selected="@(status == "Entregue")">Entregue</option>
+                        <option value="Cancelada" selected="@(status == "Cancelada")">Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="bi bi-funnel me-1"></i>Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body p-0">
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Cliente</th>
+                                <th class="hide-mobile">Aparelho</th>
+                                <th class="hide-mobile">Técnico</th>
+                                <th class="hide-mobile">Defeito</th>
+                                <th>Entrada</th>
+                                <th class="hide-mobile">Previsão</th>
+                                <th>Status</th>
+                                <th>Valor</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ordem in Model)
+                            {
+                                <tr>
+                                    <td><strong>@ordem.Numero</strong></td>
+                                    <td>@ordem.ClienteNome</td>
+                                    <td class="hide-mobile">@ordem.AparelhoDescricao</td>
+                                    <td class="hide-mobile">@(ordem.TecnicoNome ?? "-")</td>
+                                    <td class="hide-mobile">@(ordem.DefeitoRelatado.Length > 30 ? ordem.DefeitoRelatado[..30] + "..." : ordem.DefeitoRelatado)</td>
+                                    <td>@ordem.DataEntrada.ToString("dd/MM/yyyy")</td>
+                                    <td class="hide-mobile">@(ordem.PrevisaoEntrega?.ToString("dd/MM/yyyy") ?? "-")</td>
+                                    <td>
+                                        @switch (ordem.Status)
+                                        {
+                                            case StatusOrdemServico.Aberta:
+                                                <span class="badge bg-primary">@ordem.StatusDescricao</span>
+                                                break;
+                                            case StatusOrdemServico.EmAnalise:
+                                                <span class="badge bg-info">@ordem.StatusDescricao</span>
+                                                break;
+                                            case StatusOrdemServico.AguardandoAprovacao:
+                                                <span class="badge bg-warning text-dark">@ordem.StatusDescricao</span>
+                                                break;
+                                            case StatusOrdemServico.EmManutencao:
+                                                <span class="badge" style="background-color: #fd7e14;">@ordem.StatusDescricao</span>
+                                                break;
+                                            case StatusOrdemServico.Concluida:
+                                                <span class="badge bg-success">@ordem.StatusDescricao</span>
+                                                break;
+                                            case StatusOrdemServico.Entregue:
+                                                <span class="badge bg-secondary">@ordem.StatusDescricao</span>
+                                                break;
+                                            case StatusOrdemServico.Cancelada:
+                                                <span class="badge bg-danger">@ordem.StatusDescricao</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td>R$ @ordem.ValorTotal.ToString("N2")</td>
+                                    <td class="text-end">
+                                        <div class="btn-group">
+                                            <a asp-action="Detalhes" asp-route-id="@ordem.Id"
+                                               class="btn btn-sm btn-outline-primary" title="Visualizar">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="Editar" asp-route-id="@ordem.Id"
+                                               class="btn btn-sm btn-outline-secondary" title="Editar">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="bi bi-clipboard-check d-block"></i>
+                    <h6>Nenhuma ordem de serviço encontrada</h6>
+                    <p class="text-muted">
+                        @if (!string.IsNullOrWhiteSpace(pesquisa))
+                        {
+                            <span>Nenhum resultado para "@pesquisa".</span>
+                        }
+                        else
+                        {
+                            <span>Abra a primeira ordem de serviço.</span>
+                        }
+                    </p>
+                    <a asp-action="Criar" class="btn btn-primary">
+                        <i class="bi bi-plus-lg me-2"></i>Nova Ordem
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>

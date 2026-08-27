@@ -1,0 +1,56 @@
+@{
+    var resumo = ViewData["Notificacoes"] as NotificacaoResumoDto ?? new NotificacaoResumoDto();
+}
+
+<div class="dropdown">
+    <a href="#" class="position-relative text-decoration-none" data-bs-toggle="dropdown">
+        <i class="bi bi-bell fs-5"></i>
+        @if (resumo.Total > 0)
+        {
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                @resumo.Total
+            </span>
+        }
+    </a>
+    <div class="dropdown-menu dropdown-menu-end shadow-sm" style="width: 350px; max-height: 400px; overflow-y: auto;">
+        <h6 class="dropdown-header d-flex justify-content-between align-items-center">
+            <span>Notificações</span>
+            @if (resumo.Total > 0)
+            {
+                <span class="badge bg-danger">@resumo.Total</span>
+            }
+        </h6>
+
+        @if (resumo.Notificacoes.Any())
+        {
+            @foreach (var notificacao in resumo.Notificacoes.Take(10))
+            {
+                <a class="dropdown-item d-flex align-items-start py-2 @(!string.IsNullOrEmpty(notificacao.Link) ? "" : "disabled")"
+                   href="@(notificacao.Link ?? "#")">
+                    <div class="me-2 mt-1">
+                        <i class="bi @notificacao.Icone text-@notificacao.Cor"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="small fw-semibold">@notificacao.Titulo</div>
+                        <div class="small text-muted">@notificacao.Mensagem</div>
+                    </div>
+                </a>
+            }
+
+            @if (resumo.Notificacoes.Count > 10)
+            {
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item text-center small text-primary" href="/Dashboard">
+                    Ver todas (@resumo.Total)
+                </a>
+            }
+        }
+        else
+        {
+            <div class="dropdown-item text-center text-muted py-3">
+                <i class="bi bi-check-circle d-block mb-1 fs-4"></i>
+                <span class="small">Nenhuma notificação</span>
+            </div>
+        }
+    </div>
+</div>

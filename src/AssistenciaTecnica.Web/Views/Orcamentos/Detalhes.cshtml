@@ -1,0 +1,298 @@
+@model OrcamentoDto
+@{
+    ViewData["Title"] = $"Orçamento {Model.Numero}";
+}
+
+<div class="fade-in">
+    <div class="d-flex flex-wrap align-items-start gap-2 mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h4 class="mb-0 fw-bold">Orçamento @Model.Numero</h4>
+            <p class="text-muted mb-0 small">Criado em @Model.DataCriacao.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+        @if (Model.Status == StatusOrcamento.Rascunho)
+        {
+            <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-pencil me-1"></i> Editar
+            </a>
+        }
+    </div>
+
+    <div class="row g-4">
+        <!-- Informações Principais -->
+        <div class="col-lg-8">
+            <!-- Status e Ações -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="me-3">
+                                Status:
+                                @switch (Model.Status)
+                                {
+                                    case StatusOrcamento.Rascunho:
+                                        <span class="badge bg-secondary fs-6">@Model.StatusDescricao</span>
+                                        break;
+                                    case StatusOrcamento.Enviado:
+                                        <span class="badge bg-info fs-6">@Model.StatusDescricao</span>
+                                        break;
+                                    case StatusOrcamento.Aprovado:
+                                        <span class="badge bg-success fs-6">@Model.StatusDescricao</span>
+                                        break;
+                                    case StatusOrcamento.Rejeitado:
+                                        <span class="badge bg-danger fs-6">@Model.StatusDescricao</span>
+                                        break;
+                                    case StatusOrcamento.Convertido:
+                                        <span class="badge bg-primary fs-6">@Model.StatusDescricao</span>
+                                        break;
+                                    case StatusOrcamento.Expirado:
+                                        <span class="badge bg-warning text-dark fs-6">@Model.StatusDescricao</span>
+                                        break;
+                                }
+                            </span>
+                            @if (Model.DataValidade.HasValue)
+                            {
+                                <span class="text-muted">
+                                    Validade: @Model.DataValidade.Value.ToString("dd/MM/yyyy")
+                                    @if (Model.DataValidade.Value < DateTime.UtcNow && Model.Status == StatusOrcamento.Enviado)
+                                    {
+                                        <span class="text-danger fw-bold">(Vencido)</span>
+                                    }
+                                </span>
+                            }
+                        </div>
+                        <div class="d-flex gap-2">
+                            @if (Model.Status == StatusOrcamento.Rascunho)
+                            {
+                                <form asp-action="AlterarStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <input type="hidden" name="novoStatus" value="@StatusOrcamento.Enviado" />
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="bi bi-send me-1"></i> Enviar
+                                    </button>
+                                </form>
+                            }
+                            @if (Model.Status == StatusOrcamento.Enviado)
+                            {
+                                <form asp-action="AlterarStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <input type="hidden" name="novoStatus" value="@StatusOrcamento.Aprovado" />
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-lg me-1"></i> Aprovar
+                                    </button>
+                                </form>
+                                <form asp-action="AlterarStatus" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <input type="hidden" name="novoStatus" value="@StatusOrcamento.Rejeitado" />
+                                    <button type="submit" class="btn btn-outline-danger">
+                                        <i class="bi bi-x-lg me-1"></i> Rejeitar
+                                    </button>
+                                </form>
+                            }
+                            @if (Model.Status == StatusOrcamento.Aprovado)
+                            {
+                                <form asp-action="ConverterEmOS" method="post" class="d-inline">
+                                    <input type="hidden" name="id" value="@Model.Id" />
+                                    <button type="submit" class="btn btn-primary" onclick="return confirm('Converter este orçamento em Ordem de Serviço?')">
+                                        <i class="bi bi-arrow-right-circle me-1"></i> Converter em OS
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dados do Cliente e Aparelho -->
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-person me-2"></i>Cliente</h6>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="fw-bold">@Model.ClienteNome</h5>
+                            @if (!string.IsNullOrEmpty(Model.ClienteTelefone))
+                            {
+                                <p class="mb-1"><i class="bi bi-telephone me-2"></i>@Model.ClienteTelefone</p>
+                            }
+                            <a asp-controller="Clientes" asp-action="Detalhes" asp-route-id="@Model.ClienteId"
+                               class="btn btn-sm btn-outline-primary mt-2">
+                                <i class="bi bi-eye me-1"></i> Ver Cliente
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h6 class="mb-0"><i class="bi bi-phone me-2"></i>Aparelho</h6>
+                        </div>
+                        <div class="card-body">
+                            <h5 class="fw-bold">@Model.AparelhoDescricao</h5>
+                            <a asp-controller="Aparelhos" asp-action="Detalhes" asp-route-id="@Model.AparelhoId"
+                               class="btn btn-sm btn-outline-primary mt-2">
+                                <i class="bi bi-eye me-1"></i> Ver Aparelho
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Defeito e Diagnóstico -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Problema</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Defeito Relatado:</strong>
+                        <p class="mt-1">@Model.DefeitoRelatado</p>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Diagnostico))
+                    {
+                        <div>
+                            <strong>Diagnóstico:</strong>
+                            <p class="mt-1">@Model.Diagnostico</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Itens do Orçamento -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-list-check me-2"></i>Itens do Orçamento</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Itens.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Tipo</th>
+                                        <th>Descrição</th>
+                                        <th class="text-center">Qtd</th>
+                                        <th class="text-end">Valor Unit.</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var item in Model.Itens)
+                                    {
+                                        <tr>
+                                            <td>
+                                                @if (item.Tipo == TipoItemOrcamento.Servico)
+                                                {
+                                                    <span class="badge bg-primary"><i class="bi bi-wrench me-1"></i>Serviço</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="badge bg-warning text-dark"><i class="bi bi-box me-1"></i>Peça</span>
+                                                }
+                                            </td>
+                                            <td>@item.Descricao</td>
+                                            <td class="text-center">@item.Quantidade</td>
+                                            <td class="text-end">R$ @item.ValorUnitario.ToString("N2")</td>
+                                            <td class="text-end fw-bold">R$ @item.Subtotal.ToString("N2")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-0">Nenhum item cadastrado</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Observacoes))
+            {
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Observações</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@Model.Observacoes</p>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Resumo Financeiro -->
+        <div class="col-lg-4">
+            <div class="card sticky-top" style="top: 80px;">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Valores</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Serviços:</span>
+                        <span class="fw-bold">R$ @Model.ValorServicos.ToString("N2")</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Peças:</span>
+                        <span class="fw-bold">R$ @Model.ValorPecas.ToString("N2")</span>
+                    </div>
+                    @if (Model.Desconto > 0)
+                    {
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-muted">Desconto:</span>
+                            <span class="fw-bold text-danger">- R$ @Model.Desconto.ToString("N2")</span>
+                        </div>
+                    }
+                    <hr />
+                    <div class="d-flex justify-content-between">
+                        <span class="fs-4 fw-bold">Total:</span>
+                        <span class="fs-4 fw-bold text-success">R$ @Model.ValorTotal.ToString("N2")</span>
+                    </div>
+                </div>
+
+                @if (Model.OrdemServicoId.HasValue)
+                {
+                    <div class="card-footer">
+                        <a asp-controller="OrdensServico" asp-action="Detalhes" asp-route-id="@Model.OrdemServicoId"
+                           class="btn btn-primary w-100">
+                            <i class="bi bi-clipboard-check me-1"></i> Ver OS @Model.OrdemServicoNumero
+                        </a>
+                    </div>
+                }
+
+                <!-- Timeline -->
+                <div class="card-footer bg-light">
+                    <h6 class="mb-3"><i class="bi bi-clock-history me-2"></i>Histórico</h6>
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <small class="text-muted">@Model.DataCriacao.ToString("dd/MM/yyyy HH:mm")</small>
+                            <br />
+                            <span>Orçamento criado</span>
+                        </div>
+                        @if (Model.DataEnvio.HasValue)
+                        {
+                            <div class="timeline-item">
+                                <small class="text-muted">@Model.DataEnvio.Value.ToString("dd/MM/yyyy HH:mm")</small>
+                                <br />
+                                <span>Enviado ao cliente</span>
+                            </div>
+                        }
+                        @if (Model.DataAprovacao.HasValue)
+                        {
+                            <div class="timeline-item">
+                                <small class="text-muted">@Model.DataAprovacao.Value.ToString("dd/MM/yyyy HH:mm")</small>
+                                <br />
+                                <span>Aprovado pelo cliente</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

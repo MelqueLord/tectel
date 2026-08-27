@@ -1,0 +1,308 @@
+@model OrdemServicoFormDto
+@{
+    var titulo = Model.IsEdicao ? $"Editar Ordem {Model.Numero}" : "Nova Ordem de Serviço";
+    var clientes = ViewData["Clientes"] as IEnumerable<ClienteListagemDto> ?? [];
+    var aparelhos = ViewData["Aparelhos"] as IEnumerable<AparelhoDto> ?? [];
+    var tecnicos = ViewData["Tecnicos"] as IEnumerable<TecnicoListagemDto> ?? [];
+}
+
+<div class="fade-in">
+    <div class="d-flex align-items-center mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">@titulo</h4>
+            <p class="text-muted mb-0">
+                @if (Model.IsEdicao)
+                {
+                    <span>Atualize as informações da ordem de serviço.</span>
+                }
+                else
+                {
+                    <span>Preencha os dados para abrir a ordem.</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    <form asp-action="@(Model.IsEdicao ? "Editar" : "Criar")" method="post">
+        @Html.AntiForgeryToken()
+
+        @if (Model.IsEdicao)
+        {
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="Numero" />
+            <input type="hidden" asp-for="ClienteId" />
+            <input type="hidden" asp-for="AparelhoId" />
+            <input type="hidden" asp-for="DataEntrada" />
+            <input type="hidden" asp-for="Status" />
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"
+             style="display: @(ViewData.ModelState.ErrorCount > 0 ? "block" : "none")">
+        </div>
+
+        @if (!Model.IsEdicao)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-person me-2"></i>Cliente e Aparelho</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label asp-for="ClienteId" class="form-label">Cliente <span class="text-danger">*</span></label>
+                            <select asp-for="ClienteId" class="form-select" id="clienteSelect">
+                                <option value="">Selecione um cliente</option>
+                                @foreach (var cliente in clientes)
+                                {
+                                    <option value="@cliente.Id">@cliente.Nome - @(cliente.Telefone ?? cliente.WhatsApp ?? "-")</option>
+                                }
+                            </select>
+                            <span asp-validation-for="ClienteId" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="AparelhoId" class="form-label">Aparelho <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <select asp-for="AparelhoId" class="form-select" id="aparelhoSelect">
+                                    <option value="">Selecione um aparelho</option>
+                                    @foreach (var aparelho in aparelhos)
+                                    {
+                                        <option value="@aparelho.Id">@aparelho.Marca @aparelho.Modelo</option>
+                                    }
+                                </select>
+                                <a href="#" class="btn btn-outline-success" id="btnNovoAparelho" title="Cadastrar novo aparelho"
+                                   style="display: none;">
+                                    <i class="bi bi-plus-lg"></i>
+                                </a>
+                            </div>
+                            <span asp-validation-for="AparelhoId" class="text-danger small"></span>
+                            <div class="form-text" id="semAparelhos" style="display: none;">
+                                Cliente sem aparelhos cadastrados.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-12">
+                            <label asp-for="TecnicoId" class="form-label">Técnico Responsável</label>
+                            <select asp-for="TecnicoId" class="form-select">
+                                <option value="">Selecione um técnico</option>
+                                @foreach (var tecnico in tecnicos)
+                                {
+                                    <option value="@tecnico.Id">@tecnico.Nome @(tecnico.Especialidade != null ? $"- {tecnico.Especialidade}" : "")</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Informações da Ordem</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Número</label>
+                            <input type="text" class="form-control" value="@Model.Numero" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Cliente</label>
+                            <input type="text" class="form-control" value="@Model.ClienteNome" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Aparelho</label>
+                            <input type="text" class="form-control" value="@Model.AparelhoDescricao" readonly>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="TecnicoId" class="form-label">Técnico Responsável</label>
+                            <select asp-for="TecnicoId" class="form-select">
+                                <option value="">Selecione um técnico</option>
+                                @foreach (var tecnico in tecnicos)
+                                {
+                                    <option value="@tecnico.Id">@tecnico.Nome @(tecnico.Especialidade != null ? $"- {tecnico.Especialidade}" : "")</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Problema</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-12">
+                        <label asp-for="DefeitoRelatado" class="form-label">Defeito Relatado <span class="text-danger">*</span></label>
+                        <textarea asp-for="DefeitoRelatado" class="form-control" rows="3"
+                                  placeholder="Descreva o problema informado pelo cliente..."></textarea>
+                        <span asp-validation-for="DefeitoRelatado" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (Model.IsEdicao)
+        {
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-wrench me-2"></i>Diagnóstico e Serviço</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-12">
+                            <label asp-for="Diagnostico" class="form-label">Diagnóstico</label>
+                            <textarea asp-for="Diagnostico" class="form-control" rows="3"
+                                      placeholder="Descreva o diagnóstico técnico..."></textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label asp-for="ServicoRealizado" class="form-label">Serviço Realizado</label>
+                            <textarea asp-for="ServicoRealizado" class="form-control" rows="3"
+                                      placeholder="Descreva o serviço executado..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-currency-dollar me-2"></i>Valores</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label asp-for="ValorServico" class="form-label">Valor do Serviço</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input asp-for="ValorServico" class="form-control" type="number" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="ValorPecas" class="form-label">Valor das Peças</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input asp-for="ValorPecas" class="form-control" type="number" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label asp-for="Desconto" class="form-label">Desconto</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input asp-for="Desconto" class="form-control" type="number" step="0.01" min="0">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Valor Total</label>
+                            <div class="input-group">
+                                <span class="input-group-text">R$</span>
+                                <input type="text" class="form-control" id="valorTotal" readonly>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-calendar me-2"></i>Prazos</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label asp-for="PrevisaoEntrega" class="form-label">Previsão de Entrega</label>
+                        <input asp-for="PrevisaoEntrega" class="form-control" type="date">
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="PrazoGarantiaDias" class="form-label">Prazo de Garantia (dias)</label>
+                        <input asp-for="PrazoGarantiaDias" class="form-control" type="number" min="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Observações</h6>
+            </div>
+            <div class="card-body">
+                <textarea asp-for="Observacoes" class="form-control" rows="3"
+                          placeholder="Observações gerais sobre a ordem..."></textarea>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2">
+            <a asp-action="Index" class="btn btn-outline-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-2"></i>Salvar
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var clienteSelect = document.getElementById('clienteSelect');
+            var aparelhoSelect = document.getElementById('aparelhoSelect');
+            var btnNovoAparelho = document.getElementById('btnNovoAparelho');
+            var semAparelhos = document.getElementById('semAparelhos');
+
+            if (clienteSelect) {
+                clienteSelect.addEventListener('change', function () {
+                    var clienteId = this.value;
+                    aparelhoSelect.innerHTML = '<option value="">Carregando...</option>';
+
+                    if (clienteId) {
+                        fetch('/Aparelhos/ObterPorCliente?clienteId=' + clienteId)
+                            .then(response => response.json())
+                            .then(aparelhos => {
+                                aparelhoSelect.innerHTML = '<option value="">Selecione um aparelho</option>';
+                                aparelhos.forEach(a => {
+                                    var option = document.createElement('option');
+                                    option.value = a.id;
+                                    option.textContent = a.descricao;
+                                    aparelhoSelect.appendChild(option);
+                                });
+
+                                btnNovoAparelho.style.display = 'block';
+                                btnNovoAparelho.href = '/Aparelhos/Criar?clienteId=' + clienteId;
+                                semAparelhos.style.display = aparelhos.length === 0 ? 'block' : 'none';
+                            });
+                    } else {
+                        aparelhoSelect.innerHTML = '<option value="">Selecione um aparelho</option>';
+                        btnNovoAparelho.style.display = 'none';
+                        semAparelhos.style.display = 'none';
+                    }
+                });
+            }
+
+            var valorServico = document.getElementById('ValorServico');
+            var valorPecas = document.getElementById('ValorPecas');
+            var desconto = document.getElementById('Desconto');
+            var valorTotal = document.getElementById('valorTotal');
+
+            function calcularTotal() {
+                if (valorServico && valorPecas && desconto && valorTotal) {
+                    var total = (parseFloat(valorServico.value) || 0) +
+                                (parseFloat(valorPecas.value) || 0) -
+                                (parseFloat(desconto.value) || 0);
+                    valorTotal.value = total.toFixed(2);
+                }
+            }
+
+            if (valorServico) valorServico.addEventListener('input', calcularTotal);
+            if (valorPecas) valorPecas.addEventListener('input', calcularTotal);
+            if (desconto) desconto.addEventListener('input', calcularTotal);
+
+            calcularTotal();
+        });
+    </script>
+}

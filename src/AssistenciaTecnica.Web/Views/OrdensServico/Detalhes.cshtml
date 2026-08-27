@@ -1,0 +1,419 @@
+@model OrdemServicoDto
+@{
+    var dataFimGarantia = Model.DataEntrega?.AddDays(Model.PrazoGarantiaDias) ?? Model.DataConclusao?.AddDays(Model.PrazoGarantiaDias);
+    var pagamentos = ViewData["Pagamentos"] as IEnumerable<PagamentoDto> ?? [];
+}
+
+<div class="fade-in">
+    <!-- Header -->
+    <div class="d-flex flex-wrap align-items-start gap-2 mb-4">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div class="flex-grow-1">
+            <h4 class="mb-0">
+                @Model.Numero
+                @switch (Model.Status)
+                {
+                    case StatusOrdemServico.Aberta:
+                        <span class="badge bg-primary ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusOrdemServico.EmAnalise:
+                        <span class="badge bg-info ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusOrdemServico.AguardandoAprovacao:
+                        <span class="badge bg-warning text-dark ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusOrdemServico.EmManutencao:
+                        <span class="badge ms-2" style="background-color: #fd7e14;">@Model.StatusDescricao</span>
+                        break;
+                    case StatusOrdemServico.Concluida:
+                        <span class="badge bg-success ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusOrdemServico.Entregue:
+                        <span class="badge bg-secondary ms-2">@Model.StatusDescricao</span>
+                        break;
+                    case StatusOrdemServico.Cancelada:
+                        <span class="badge bg-danger ms-2">@Model.StatusDescricao</span>
+                        break;
+                }
+            </h4>
+            <p class="text-muted mb-0 small">
+                Entrada: @Model.DataEntrada.ToString("dd/MM/yyyy HH:mm")
+                @if (Model.PrevisaoEntrega.HasValue)
+                {
+                    <span> | Previsão: @Model.PrevisaoEntrega.Value.ToString("dd/MM/yyyy")</span>
+                }
+            </p>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="d-flex flex-wrap gap-2 mb-4">
+        <a asp-action="Imprimir" asp-route-id="@Model.Id" class="btn btn-outline-secondary btn-sm" target="_blank">
+            <i class="bi bi-printer me-1"></i>Imprimir
+        </a>
+        <a asp-action="Editar" asp-route-id="@Model.Id" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Editar
+        </a>
+
+        @if (Model.Status == StatusOrdemServico.Aberta)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="EmAnalise" />
+                <button type="submit" class="btn btn-info btn-sm text-white">
+                    <i class="bi bi-search me-1"></i>Iniciar Análise
+                </button>
+            </form>
+        }
+        else if (Model.Status == StatusOrdemServico.EmAnalise)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="AguardandoAprovacao" />
+                <button type="submit" class="btn btn-warning btn-sm">
+                    <i class="bi bi-hourglass me-1"></i>Enviar p/ Aprovação
+                </button>
+            </form>
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="EmManutencao" />
+                <button type="submit" class="btn btn-sm" style="background-color: #fd7e14; color: white;">
+                    <i class="bi bi-wrench me-1"></i>Iniciar Manutenção
+                </button>
+            </form>
+        }
+        else if (Model.Status == StatusOrdemServico.AguardandoAprovacao)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="EmManutencao" />
+                <button type="submit" class="btn btn-sm" style="background-color: #fd7e14; color: white;">
+                    <i class="bi bi-wrench me-1"></i>Aprovar e Iniciar
+                </button>
+            </form>
+        }
+        else if (Model.Status == StatusOrdemServico.EmManutencao)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="Concluida" />
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="bi bi-check-circle me-1"></i>Concluir
+                </button>
+            </form>
+        }
+        else if (Model.Status == StatusOrdemServico.Concluida)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="Entregue" />
+                <button type="submit" class="btn btn-secondary btn-sm">
+                    <i class="bi bi-truck me-1"></i>Marcar como Entregue
+                </button>
+            </form>
+        }
+
+        @if (Model.Status != StatusOrdemServico.Entregue && Model.Status != StatusOrdemServico.Cancelada)
+        {
+            <form asp-action="AlterarStatus" asp-route-id="@Model.Id" method="post" class="d-inline">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="novoStatus" value="Cancelada" />
+                <button type="submit" class="btn btn-outline-danger btn-sm"
+                        onclick="return confirm('Deseja cancelar esta ordem?')">
+                    <i class="bi bi-x-circle me-1"></i>Cancelar
+                </button>
+            </form>
+        }
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-person me-2"></i>Cliente</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Nome</dt>
+                        <dd class="col-sm-8">
+                            <a asp-controller="Clientes" asp-action="Detalhes" asp-route-id="@Model.ClienteId">
+                                @Model.ClienteNome
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-phone me-2"></i>Aparelho</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Descrição</dt>
+                        <dd class="col-sm-8">
+                            <a asp-controller="Aparelhos" asp-action="Detalhes" asp-route-id="@Model.AparelhoId">
+                                @Model.AparelhoDescricao
+                            </a>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-person-gear me-2"></i>Técnico Responsável</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Nome</dt>
+                        <dd class="col-sm-8">
+                            @if (Model.TecnicoId.HasValue && !string.IsNullOrWhiteSpace(Model.TecnicoNome))
+                            {
+                                <a asp-controller="Tecnicos" asp-action="Detalhes" asp-route-id="@Model.TecnicoId">
+                                    @Model.TecnicoNome
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="text-muted">Não atribuído</span>
+                            }
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-exclamation-triangle me-2"></i>Problema Relatado</h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-0">@Model.DefeitoRelatado</p>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Diagnostico))
+        {
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-search me-2"></i>Diagnóstico</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@Model.Diagnostico</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.ServicoRealizado))
+        {
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-wrench me-2"></i>Serviço Realizado</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@Model.ServicoRealizado</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-currency-dollar me-2"></i>Valores</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <small class="text-muted">Serviço</small>
+                            <h5>R$ @Model.ValorServico.ToString("N2")</h5>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Peças</small>
+                            <h5>R$ @Model.ValorPecas.ToString("N2")</h5>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Desconto</small>
+                            <h5>R$ @Model.Desconto.ToString("N2")</h5>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Total</small>
+                            <h5 class="text-primary">R$ @Model.ValorTotal.ToString("N2")</h5>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Pago</small>
+                            <h5 class="text-success">R$ @Model.ValorPago.ToString("N2")</h5>
+                        </div>
+                        <div class="col-md-2">
+                            <small class="text-muted">Saldo</small>
+                            <h5 class="@(Model.SaldoPendente > 0 ? "text-danger" : "text-success")">
+                                R$ @Model.SaldoPendente.ToString("N2")
+                            </h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(Model.Observacoes))
+        {
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h6 class="mb-0"><i class="bi bi-chat-left-text me-2"></i>Observações</h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@Model.Observacoes</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="mb-0"><i class="bi bi-shield-check me-2"></i>Garantia</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <small class="text-muted">Prazo</small>
+                            <p class="mb-0">@Model.PrazoGarantiaDias dias</p>
+                        </div>
+                        @if (dataFimGarantia.HasValue)
+                        {
+                            <div class="col-md-4">
+                                <small class="text-muted">Válida até</small>
+                                <p class="mb-0">@dataFimGarantia.Value.ToString("dd/MM/yyyy")</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagamentos -->
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-credit-card me-2"></i>Pagamentos</h6>
+                    @if (Model.SaldoPendente > 0 && Model.Status != StatusOrdemServico.Cancelada && Model.Status != StatusOrdemServico.Entregue)
+                    {
+                        <button class="btn btn-sm btn-success" type="button" data-bs-toggle="collapse" data-bs-target="#formPagamento">
+                            <i class="bi bi-plus-lg me-1"></i>Registrar Pagamento
+                        </button>
+                    }
+                </div>
+                <div class="card-body">
+                    @if (Model.SaldoPendente > 0 && Model.Status != StatusOrdemServico.Cancelada && Model.Status != StatusOrdemServico.Entregue)
+                    {
+                        <div class="collapse mb-4" id="formPagamento">
+                            <div class="card card-body bg-light">
+                                <form asp-action="RegistrarPagamento" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="ordemId" value="@Model.Id" />
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Valor <span class="text-danger">*</span></label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">R$</span>
+                                                <input type="number" name="valor" class="form-control" step="0.01" min="0.01"
+                                                       max="@Model.SaldoPendente" required>
+                                            </div>
+                                            <div class="form-text">Saldo pendente: R$ @Model.SaldoPendente.ToString("N2")</div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Forma de Pagamento <span class="text-danger">*</span></label>
+                                            <select name="formaPagamento" class="form-select" required>
+                                                <option value="Dinheiro">Dinheiro</option>
+                                                <option value="Pix">PIX</option>
+                                                <option value="CartaoCredito">Cartão de Crédito</option>
+                                                <option value="CartaoDebito">Cartão de Débito</option>
+                                                <option value="Transferencia">Transferência</option>
+                                                <option value="Outro">Outro</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Observação</label>
+                                            <input type="text" name="observacao" class="form-control" placeholder="Opcional">
+                                        </div>
+                                        <div class="col-12">
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="bi bi-check-lg me-2"></i>Confirmar Pagamento
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    }
+
+                    @if (pagamentos.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Data</th>
+                                        <th>Valor</th>
+                                        <th>Forma</th>
+                                        <th>Observação</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var pagamento in pagamentos)
+                                    {
+                                        <tr>
+                                            <td>@pagamento.DataPagamento.ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td class="text-success fw-bold">R$ @pagamento.Valor.ToString("N2")</td>
+                                            <td>
+                                                @switch (pagamento.FormaPagamento)
+                                                {
+                                                    case FormaPagamento.Dinheiro:
+                                                        <span class="badge bg-success">Dinheiro</span>
+                                                        break;
+                                                    case FormaPagamento.Pix:
+                                                        <span class="badge bg-info">PIX</span>
+                                                        break;
+                                                    case FormaPagamento.CartaoCredito:
+                                                        <span class="badge bg-primary">Cartão Crédito</span>
+                                                        break;
+                                                    case FormaPagamento.CartaoDebito:
+                                                        <span class="badge bg-secondary">Cartão Débito</span>
+                                                        break;
+                                                    case FormaPagamento.Transferencia:
+                                                        <span class="badge bg-warning text-dark">Transferência</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-light text-dark">Outro</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>@(pagamento.Observacao ?? "-")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Nenhum pagamento registrado.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

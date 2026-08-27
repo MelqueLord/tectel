@@ -1,0 +1,204 @@
+@model HistoricoClienteDto
+
+<div class="fade-in">
+    <div class="d-flex align-items-center mb-4">
+        <a asp-action="Detalhes" asp-route-id="@Model.Cliente.Id" class="btn btn-outline-secondary me-3">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="mb-0">Histórico do Cliente</h4>
+            <p class="text-muted mb-0">@Model.Cliente.Nome</p>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Total de OS</p>
+                            <h3 class="mb-0 fw-bold">@Model.TotalOrdens</h3>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-clipboard-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Abertas</p>
+                            <h3 class="mb-0 fw-bold text-warning">@Model.OrdensAbertas</h3>
+                        </div>
+                        <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                            <i class="bi bi-folder2-open"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Concluídas</p>
+                            <h3 class="mb-0 fw-bold text-success">@Model.OrdensConcluidas</h3>
+                        </div>
+                        <div class="stat-icon bg-success bg-opacity-10 text-success">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card stat-card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted small mb-1">Total Gasto</p>
+                            <h3 class="mb-0 fw-bold text-primary">R$ @Model.TotalGasto.ToString("N2")</h3>
+                        </div>
+                        <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Aparelhos -->
+        <div class="col-md-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-phone me-2"></i>Aparelhos (@Model.Aparelhos.Count)</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.Aparelhos.Any())
+                    {
+                        <div class="list-group list-group-flush">
+                            @foreach (var aparelho in Model.Aparelhos)
+                            {
+                                <a asp-controller="Aparelhos" asp-action="Detalhes" asp-route-id="@aparelho.Id"
+                                   class="list-group-item list-group-item-action">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <h6 class="mb-0 small">@aparelho.Marca @aparelho.Modelo</h6>
+                                            <small class="text-muted">@aparelho.Tipo</small>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(aparelho.Imei))
+                                        {
+                                            <small class="text-muted">@aparelho.Imei</small>
+                                        }
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-phone text-muted fs-3"></i>
+                            <p class="text-muted small mt-2 mb-0">Nenhum aparelho cadastrado.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Ordens de Serviço -->
+        <div class="col-md-8">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Ordens de Serviço (@Model.OrdensServico.Count)</h6>
+                </div>
+                <div class="card-body p-0">
+                    @if (Model.OrdensServico.Any())
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>Número</th>
+                                        <th>Aparelho</th>
+                                        <th>Problema</th>
+                                        <th>Status</th>
+                                        <th>Valor</th>
+                                        <th>Data</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ordem in Model.OrdensServico.OrderByDescending(o => o.DataEntrada))
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong>@ordem.Numero</strong>
+                                            </td>
+                                            <td>@ordem.AparelhoDescricao</td>
+                                            <td>
+                                                <span class="text-truncate d-inline-block" style="max-width: 150px;" title="@ordem.DefeitoRelatado">
+                                                    @ordem.DefeitoRelatado
+                                                </span>
+                                            </td>
+                                            <td>
+                                                @switch (ordem.Status)
+                                                {
+                                                    case StatusOrdemServico.Aberta:
+                                                        <span class="badge bg-primary">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.EmAnalise:
+                                                        <span class="badge bg-info">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.AguardandoAprovacao:
+                                                        <span class="badge bg-warning text-dark">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.EmManutencao:
+                                                        <span class="badge" style="background-color: #fd7e14;">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.Concluida:
+                                                        <span class="badge bg-success">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.Entregue:
+                                                        <span class="badge bg-secondary">@ordem.StatusDescricao</span>
+                                                        break;
+                                                    case StatusOrdemServico.Cancelada:
+                                                        <span class="badge bg-danger">@ordem.StatusDescricao</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>R$ @ordem.ValorTotal.ToString("N2")</td>
+                                            <td>@ordem.DataEntrada.ToString("dd/MM/yy")</td>
+                                            <td>
+                                                <a asp-controller="OrdensServico" asp-action="Detalhes" asp-route-id="@ordem.Id"
+                                                   class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-4">
+                            <i class="bi bi-clipboard-check text-muted fs-3"></i>
+                            <p class="text-muted small mt-2 mb-0">Nenhuma ordem de serviço.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

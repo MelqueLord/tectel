@@ -1,0 +1,210 @@
+@model OrdemServicoDto
+@{
+    Layout = "_LayoutPrint";
+    var config = ViewData["Configuracao"] as ConfiguracaoEmpresaDto;
+    var pagamentos = ViewData["Pagamentos"] as IEnumerable<PagamentoDto> ?? [];
+    var dataFimGarantia = Model.DataEntrega?.AddDays(Model.PrazoGarantiaDias) ?? Model.DataConclusao?.AddDays(Model.PrazoGarantiaDias);
+}
+
+<div class="print-header">
+    <div class="row align-items-center">
+        <div class="col-8">
+            @if (!string.IsNullOrEmpty(config?.LogoCaminho))
+            {
+                <img src="@config.LogoCaminho" alt="Logo" style="max-height: 60px;" class="mb-2" />
+            }
+            <h3 class="mb-1">@(config?.Nome ?? "Assistência Técnica")</h3>
+            @if (!string.IsNullOrEmpty(config?.CpfCnpj))
+            {
+                <small class="text-muted">CNPJ: @config.CpfCnpj</small>
+            }
+            @if (!string.IsNullOrEmpty(config?.Telefone))
+            {
+                <span class="text-muted"> | Tel: @config.Telefone</span>
+            }
+            @if (!string.IsNullOrEmpty(config?.Endereco))
+            {
+                <br /><small class="text-muted">@config.Endereco</small>
+            }
+        </div>
+        <div class="col-4 text-end">
+            <h4 class="mb-1">ORDEM DE SERVIÇO</h4>
+            <h2 class="mb-0">@Model.Numero</h2>
+            <small class="text-muted">@Model.StatusDescricao</small>
+        </div>
+    </div>
+</div>
+
+<div class="row print-section">
+    <div class="col-6">
+        <div class="print-section-title">DADOS DO CLIENTE</div>
+        <div class="print-field">
+            <span class="print-field-label">Nome:</span> @Model.ClienteNome
+        </div>
+    </div>
+    <div class="col-6">
+        <div class="print-section-title">DADOS DO APARELHO</div>
+        <div class="print-field">
+            <span class="print-field-label">Descrição:</span> @Model.AparelhoDescricao
+        </div>
+    </div>
+</div>
+
+<div class="row print-section">
+    <div class="col-6">
+        <div class="print-section-title">DATAS</div>
+        <div class="print-field">
+            <span class="print-field-label">Entrada:</span> @Model.DataEntrada.ToString("dd/MM/yyyy HH:mm")
+        </div>
+        @if (Model.PrevisaoEntrega.HasValue)
+        {
+            <div class="print-field">
+                <span class="print-field-label">Previsão de Entrega:</span> @Model.PrevisaoEntrega.Value.ToString("dd/MM/yyyy")
+            </div>
+        }
+        @if (Model.DataConclusao.HasValue)
+        {
+            <div class="print-field">
+                <span class="print-field-label">Conclusão:</span> @Model.DataConclusao.Value.ToString("dd/MM/yyyy")
+            </div>
+        }
+        @if (Model.DataEntrega.HasValue)
+        {
+            <div class="print-field">
+                <span class="print-field-label">Entrega:</span> @Model.DataEntrega.Value.ToString("dd/MM/yyyy")
+            </div>
+        }
+    </div>
+    <div class="col-6">
+        <div class="print-section-title">GARANTIA</div>
+        <div class="print-field">
+            <span class="print-field-label">Prazo:</span> @Model.PrazoGarantiaDias dias
+        </div>
+        @if (dataFimGarantia.HasValue)
+        {
+            <div class="print-field">
+                <span class="print-field-label">Válida até:</span> @dataFimGarantia.Value.ToString("dd/MM/yyyy")
+            </div>
+        }
+    </div>
+</div>
+
+<div class="print-section">
+    <div class="print-section-title">PROBLEMA RELATADO</div>
+    <p>@Model.DefeitoRelatado</p>
+</div>
+
+@if (!string.IsNullOrWhiteSpace(Model.Diagnostico))
+{
+    <div class="print-section">
+        <div class="print-section-title">DIAGNÓSTICO</div>
+        <p>@Model.Diagnostico</p>
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.ServicoRealizado))
+{
+    <div class="print-section">
+        <div class="print-section-title">SERVIÇO REALIZADO</div>
+        <p>@Model.ServicoRealizado</p>
+    </div>
+}
+
+<div class="print-section">
+    <div class="print-section-title">VALORES</div>
+    <div class="row">
+        <div class="col-2">
+            <div class="print-field">
+                <span class="print-field-label">Serviço:</span><br />
+                R$ @Model.ValorServico.ToString("N2")
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="print-field">
+                <span class="print-field-label">Peças:</span><br />
+                R$ @Model.ValorPecas.ToString("N2")
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="print-field">
+                <span class="print-field-label">Desconto:</span><br />
+                R$ @Model.Desconto.ToString("N2")
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="print-field">
+                <span class="print-field-label">Total:</span><br />
+                <strong>R$ @Model.ValorTotal.ToString("N2")</strong>
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="print-field">
+                <span class="print-field-label">Pago:</span><br />
+                R$ @Model.ValorPago.ToString("N2")
+            </div>
+        </div>
+        <div class="col-2">
+            <div class="print-field">
+                <span class="print-field-label">Saldo:</span><br />
+                <strong>R$ @Model.SaldoPendente.ToString("N2")</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (pagamentos.Any())
+{
+    <div class="print-section">
+        <div class="print-section-title">PAGAMENTOS</div>
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Data</th>
+                    <th>Valor</th>
+                    <th>Forma</th>
+                    <th>Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var pagamento in pagamentos)
+                {
+                    <tr>
+                        <td>@pagamento.DataPagamento.ToString("dd/MM/yyyy")</td>
+                        <td>R$ @pagamento.Valor.ToString("N2")</td>
+                        <td>@pagamento.FormaPagamentoDescricao</td>
+                        <td>@(pagamento.Observacao ?? "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(Model.Observacoes))
+{
+    <div class="print-section">
+        <div class="print-section-title">OBSERVAÇÕES</div>
+        <p>@Model.Observacoes</p>
+    </div>
+}
+
+@if (!string.IsNullOrWhiteSpace(config?.TextoPadraoOrdem))
+{
+    <div class="print-section">
+        <div class="print-section-title">TERMOS E CONDIÇÕES</div>
+        <small>@config.TextoPadraoOrdem</small>
+    </div>
+}
+
+<div class="row mt-5">
+    <div class="col-6 text-center">
+        <div class="signature-line">
+            Cliente
+        </div>
+    </div>
+    <div class="col-6 text-center">
+        <div class="signature-line">
+            @(config?.Nome ?? "Assistência Técnica")
+        </div>
+    </div>
+</div>
