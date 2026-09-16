@@ -273,7 +273,117 @@ dotnet test
 - [x] Tela de acesso negado personalizada
 - [x] Tela de erro personalizada
 
-## Deploy em Produção
+## Deploy com Docker (Hostinger)
+
+### Estrutura de Arquivos
+```
+├── Dockerfile                  # Imagem da aplicação
+├── docker-compose.prod.yml     # Compose para produção
+├── deploy.sh                   # Script de deploy (Linux/Mac)
+├── deploy.ps1                  # Script de deploy (Windows)
+├── .env.example                # Template de variáveis de ambiente
+├── nginx/
+│   ├── nginx.conf              # Configuração do Nginx
+│   └── ssl/                    # Certificados SSL
+└── scripts/
+    └── mysql-init.sql          # Inicialização do MySQL
+```
+
+### Pré-requisitos na Hostinger
+1. VPS com Docker e Docker Compose instalados
+2. Acesso SSH ao servidor
+3. Domínio apontando para o IP do servidor (opcional para HTTPS)
+
+### Passo a Passo do Deploy
+
+#### 1. Conectar ao servidor via SSH
+```bash
+ssh root@SEU_IP
+```
+
+#### 2. Clonar o repositório
+```bash
+git clone https://github.com/MelqueLord/tectel.git
+cd tectel
+```
+
+#### 3. Configurar variáveis de ambiente
+```bash
+cp .env.example .env
+nano .env
+```
+
+Configure as variáveis no `.env`:
+```env
+ADMIN_EMAIL=admin@tectel.com.br
+ADMIN_PASSWORD=SuaSenhaForte123!
+MYSQL_ROOT_PASSWORD=SenhaRootForte123!
+MYSQL_DATABASE=tectel
+MYSQL_USER=tectel
+MYSQL_PASSWORD=SenhaDBForte123!
+```
+
+#### 4. Executar o deploy
+```bash
+# Linux/Mac
+chmod +x deploy.sh
+./deploy.sh
+
+# Windows
+.\deploy.ps1
+```
+
+#### 5. Verificar se está funcionando
+```bash
+docker-compose -f docker-compose.prod.yml ps
+```
+
+### Comandos Úteis
+
+| Comando | Descrição |
+|---------|-----------|
+| `docker-compose -f docker-compose.prod.yml logs -f` | Ver logs em tempo real |
+| `docker-compose -f docker-compose.prod.yml down` | Parar todos os serviços |
+| `docker-compose -f docker-compose.prod.yml restart` | Reiniciar serviços |
+| `docker-compose -f docker-compose.prod.yml exec app bash` | Acessar container da app |
+| `docker-compose -f docker-compose.prod.yml exec mysql mysql -u tectel -p` | Acessar MySQL |
+
+### Configurar HTTPS (Let's Encrypt)
+
+1. Instalar Certbot no servidor:
+```bash
+apt update && apt install certbot -y
+```
+
+2. Gerar certificado:
+```bash
+certbot certonly --standalone -d seudominio.com.br -d www.seudominio.com.br
+```
+
+3. Copiar certificados:
+```bash
+cp /etc/letsencrypt/live/seudominio.com.br/fullchain.pem nginx/ssl/
+cp /etc/letsencrypt/live/seudominio.com.br/privkey.pem nginx/ssl/
+```
+
+4. Descomentar bloco HTTPS no `nginx/nginx.conf`
+
+5. Reiniciar serviços:
+```bash
+docker-compose -f docker-compose.prod.yml restart
+```
+
+### Backup do Banco de Dados
+
+```bash
+# Criar backup
+docker-compose -f docker-compose.prod.yml exec mysql mysqldump -u tectel -p tectel > backup_$(date +%Y%m%d).sql
+
+# Restaurar backup
+docker-compose -f docker-compose.prod.yml exec -T mysql mysql -u tectel -p tectel < backup_20260101.sql
+```
+
+## Deploy em Produção (Manual)
 
 ### Variáveis de Ambiente Obrigatórias
 
