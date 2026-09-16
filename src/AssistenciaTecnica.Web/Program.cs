@@ -126,7 +126,10 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate();
+    if (db.Database.IsMySql())
+        db.Database.EnsureCreated();
+    else
+        db.Database.Migrate();
 
     // Seed admin user
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
