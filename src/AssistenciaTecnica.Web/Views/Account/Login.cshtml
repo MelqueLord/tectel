@@ -4,53 +4,51 @@
     Layout = "_LayoutLogin";
 }
 
-<div class="row justify-content-center align-items-center min-vh-100">
-    <div class="col-11 col-sm-8 col-md-5 col-lg-4 col-xl-3">
-        <div class="card shadow-sm border-0">
-            <div class="card-body p-4">
-                <div class="text-center mb-4">
-                    <i class="bi bi-tools text-primary" style="font-size: 2.5rem;"></i>
-                    <h4 class="fw-bold mt-2">Assistência Técnica</h4>
-                    <p class="text-muted small">Sistema de Gestão</p>
-                </div>
-
-                <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
-                    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
-
-                    <div class="mb-3">
-                        <label asp-for="Email" class="form-label small fw-semibold"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                            <input asp-for="Email" class="form-control" placeholder="seu@email.com" autofocus />
-                        </div>
-                        <span asp-validation-for="Email" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label asp-for="Password" class="form-label small fw-semibold"></label>
-                        <div class="input-group">
-                            <span class="input-group-text"><i class="bi bi-lock"></i></span>
-                            <input asp-for="Password" class="form-control" placeholder="Sua senha" />
-                        </div>
-                        <span asp-validation-for="Password" class="text-danger small"></span>
-                    </div>
-
-                    <div class="mb-3 form-check">
-                        <input asp-for="RememberMe" class="form-check-input" />
-                        <label asp-for="RememberMe" class="form-check-label small"></label>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-box-arrow-in-right me-1"></i>Entrar
-                    </button>
-                </form>
-
-                <hr />
-                <p class="text-center small text-muted mb-0">
-                    Não tem conta?
-                    <a asp-action="Register" asp-route-returnUrl="@ViewData["ReturnUrl"]" class="text-decoration-none">Criar conta</a>
-                </p>
+<div class="login-container">
+    <div class="login-card">
+        <!-- Logo -->
+        <div class="text-center mb-3">
+            <div class="brand-logo-wrapper mb-2">
+                <img src="~/images/tectel-logo.png" alt="Tectel" class="brand-logo" />
             </div>
+            <h5 class="fw-bold mb-1" style="color: var(--primary);">Tectel</h5>
+            <p class="text-muted small mb-0">Sistema de Gestão</p>
+        </div>
+
+        <!-- Form -->
+        <form asp-action="Login" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger small mb-2"></div>
+
+            <div class="mb-2">
+                <label asp-for="Email" class="form-label small fw-semibold mb-1"></label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light"><i class="bi bi-envelope"></i></span>
+                    <input asp-for="Email" class="form-control" placeholder="seu@email.com" autofocus />
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-2">
+                <label asp-for="Password" class="form-label small fw-semibold mb-1"></label>
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light"><i class="bi bi-lock"></i></span>
+                    <input asp-for="Password" class="form-control" placeholder="Sua senha" />
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label small">Manter conectado</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-semibold">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+            </button>
+        </form>
+
+        <div class="text-center mt-3">
+            <small class="text-muted">&copy; @DateTime.Now.Year Tectel</small>
         </div>
     </div>
 </div>

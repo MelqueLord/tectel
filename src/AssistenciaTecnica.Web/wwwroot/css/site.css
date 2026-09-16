@@ -1,6 +1,7 @@
 :root {
     --primary: #2563eb;
     --primary-hover: #1d4ed8;
+    --primary-light: #dbeafe;
     --secondary: #64748b;
     --success: #16a34a;
     --warning: #d97706;
@@ -23,10 +24,31 @@ body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
+/* Brand Logo */
+.brand-logo-wrapper {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(37, 99, 235, 0.3);
+}
+
+.brand-logo {
+    max-height: 50px;
+    max-width: 60px;
+    object-fit: contain;
+}
+
 /* Sidebar */
 .sidebar {
     width: var(--sidebar-width);
     min-height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     position: fixed;
     top: 0;

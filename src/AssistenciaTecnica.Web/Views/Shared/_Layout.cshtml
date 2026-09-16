@@ -3,7 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Assistência Técnica</title>
+    <title>@ViewData["Title"] - Tectel</title>
+    <link rel="icon" type="image/png" href="~/images/tectel-logo.png" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
@@ -13,7 +14,7 @@
     <nav class="sidebar d-lg-block" id="sidebar">
         <div class="p-3">
             @await Component.InvokeAsync("Logo")
-            <small class="text-muted">Sistema de Gestão</small>
+            <small class="text-white-50 d-block mt-1" style="font-size: 0.7rem;">Sistema de Gestão</small>
         </div>
         <hr class="text-secondary my-0">
         <ul class="nav flex-column py-2">
@@ -79,6 +80,12 @@
             </li>
             <li class="nav-item mt-3">
                 <hr class="text-secondary">
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Usuarios" ? "active" : "")"
+                   asp-controller="Usuarios" asp-action="Index">
+                    <i class="bi bi-people-fill"></i> Usuários
+                </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Configuracoes" ? "active" : "")"

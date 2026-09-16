@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using AssistenciaTecnica.Application.Interfaces;
 using AssistenciaTecnica.Application.Services;
 using AssistenciaTecnica.Domain.Entities;
@@ -5,8 +6,47 @@ using AssistenciaTecnica.Infrastructure.Data;
 using AssistenciaTecnica.Infrastructure.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Serilog
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.FromLogContext()
+    .CreateLogger();
+
+builder.Host.UseSerilog();
+
+// Rate Limiting
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("login", context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 5,
+            Window = TimeSpan.FromMinutes(1),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        });
+    });
+
+    options.AddPolicy("register", context =>
+    {
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(ip, _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 3,
+            Window = TimeSpan.FromMinutes(5),
+            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+            QueueLimit = 0
+        });
+    });
+});
 
 // Database
 var dbProvider = builder.Configuration.GetValue<string>("DatabaseProvider") ?? "Sqlite";
@@ -20,7 +60,7 @@ if (dbProvider.Equals("MySql", StringComparison.OrdinalIgnoreCase))
     builder.Services.AddDbContext<AppDbContext>(options =>
         options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 }
-else
+else if (!dbProvider.Equals("InMemory", StringComparison.OrdinalIgnoreCase))
 {
     var sqlitePath = builder.Configuration.GetValue<string>("SqlitePath") ?? "AssistenciaTecnica.db";
     builder.Services.AddDbContext<AppDbContext>(options =>
@@ -48,6 +88,10 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromHours(8);
     options.SlidingExpiration = true;
 });
+
+// Health Checks
+builder.Services.AddHealthChecks()
+    .AddDbContextCheck<AppDbContext>();
 
 // Repositories
 builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
@@ -91,7 +135,11 @@ using (var scope = app.Services.CreateScope())
     if (!await roleManager.RoleExistsAsync("Admin"))
         await roleManager.CreateAsync(new IdentityRole("Admin"));
 
-    var adminEmail = "admin@assistencia.com";
+    var adminEmail = Environment.GetEnvironmentVariable("ADMIN_EMAIL") ?? "admin@assistencia.com";
+    var adminPassword = Environment.GetEnvironmentVariable("ADMIN_PASSWORD")
+        ?? throw new InvalidOperationException(
+            "ADMIN_PASSWORD environment variable is required. Set it before starting the application.");
+
     var adminUser = await userManager.FindByEmailAsync(adminEmail);
     if (adminUser is null)
     {
@@ -101,12 +149,12 @@ using (var scope = app.Services.CreateScope())
             Email = adminEmail,
             EmailConfirmed = true
         };
-        await userManager.CreateAsync(adminUser, "Admin@123");
+        await userManager.CreateAsync(adminUser, adminPassword);
         await userManager.AddToRoleAsync(adminUser, "Admin");
     }
 
-    // Seed demo data
-    if (!db.Clientes.Any())
+    // Seed demo data (only in Development environment)
+    if (app.Environment.IsDevelopment() && !db.Clientes.Any())
     {
         // Configuração da empresa
         db.ConfiguracaoEmpresa.Add(new ConfiguracaoEmpresa
@@ -232,10 +280,14 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseHttpsRedirection();
 app.UseStaticFiles();
+app.UseRateLimiter();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapHealthChecks("/health");
 
 app.MapControllerRoute(
     name: "default",

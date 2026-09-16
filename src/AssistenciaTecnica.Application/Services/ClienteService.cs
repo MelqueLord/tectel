@@ -168,7 +168,7 @@ public class ClienteService : IClienteService
             if (addr.Address != email.Trim())
                 throw new InvalidOperationException("O e-mail informado é inválido.");
         }
-        catch
+        catch (FormatException)
         {
             throw new InvalidOperationException("O e-mail informado é inválido.");
         }

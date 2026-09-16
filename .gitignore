@@ -59,6 +59,8 @@ $RECYCLE.BIN/
 
 # Secrets
 appsettings.Development.json
+appsettings.MySql.json
+appsettings.Production.json
 *.env
 *.env.*
 secrets.json
@@ -67,3 +69,8 @@ secrets.json
 *.swp
 *.swo
 *~
+
+# Database files
+*.db
+*.db-shm
+*.db-wal

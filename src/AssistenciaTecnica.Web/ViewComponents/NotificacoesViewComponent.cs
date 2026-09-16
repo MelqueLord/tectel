@@ -7,10 +7,14 @@ namespace AssistenciaTecnica.Web.ViewComponents;
 public class NotificacoesViewComponent : ViewComponent
 {
     private readonly INotificacaoService _notificacaoService;
+    private readonly ILogger<NotificacoesViewComponent> _logger;
 
-    public NotificacoesViewComponent(INotificacaoService notificacaoService)
+    public NotificacoesViewComponent(
+        INotificacaoService notificacaoService,
+        ILogger<NotificacoesViewComponent> logger)
     {
         _notificacaoService = notificacaoService;
+        _logger = logger;
     }
 
     public async Task<IViewComponentResult> InvokeAsync()
@@ -21,8 +25,9 @@ public class NotificacoesViewComponent : ViewComponent
             ViewData["Notificacoes"] = resumo;
             return View();
         }
-        catch
+        catch (Exception ex)
         {
+            _logger.LogWarning(ex, "Erro ao carregar notificações");
             ViewData["Notificacoes"] = new NotificacaoResumoDto();
             return View();
         }

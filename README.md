@@ -115,9 +115,18 @@ tests/
 
 ### Opção 1: SQLite (Recomendado para desenvolvimento)
 ```bash
+# Definir senha do admin (obrigatório)
+$env:ADMIN_PASSWORD = "Admin@123"
+
+# Executar o sistema
 dotnet run --project src/AssistenciaTecnica.Web
 ```
+
 O banco SQLite é criado automaticamente.
+
+**Credenciais padrão:**
+- Email: `admin@assistencia.com`
+- Senha: valor definido em `ADMIN_PASSWORD`
 
 ### Opção 2: MySQL com Docker
 ```bash
@@ -247,19 +256,102 @@ dotnet test
 - [x] Exibição do técnico nos detalhes da OS
 - [x] Busca de OS por nome do técnico
 
+### Gerenciamento de Usuários
+- [x] Listagem de usuários (apenas Admin)
+- [x] Criação de usuários com senha
+- [x] Definir usuário como Admin
+- [x] Ativar/Desativar usuários
+- [x] Alterar senha de usuários
+- [x] Exclusão de usuários
+- [x] Menu no sidebar (apenas Admin)
+
+### Personalização da Marca
+- [x] Logo da empresa no login
+- [x] Logo no sidebar
+- [x] Logo no favicon
+- [x] Layout responsivo para login
+- [x] Tela de acesso negado personalizada
+- [x] Tela de erro personalizada
+
+## Deploy em Produção
+
+### Variáveis de Ambiente Obrigatórias
+
+| Variável | Descrição | Exemplo |
+|----------|-----------|---------|
+| `ASPNETCORE_ENVIRONMENT` | Ambiente de execução | `Production` |
+| `ADMIN_PASSWORD` | Senha do admin inicial | `SuaSenh@Forte123!` |
+| `ADMIN_EMAIL` | Email do admin (opcional) | `admin@seudominio.com` |
+
+### Configuração MySQL em Produção
+
+1. Crie `appsettings.Production.json` em `src/AssistenciaTecnica.Web/`:
+```json
+{
+  "DatabaseProvider": "MySql",
+  "AllowedHosts": "seudominio.com,www.seudominio.com",
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost;Port=3306;Database=assistencia_tecnica;User=assistencia;Password=SUA_SENHA_SEGURA;"
+  }
+}
+```
+
+2. Configure as variáveis de ambiente e execute:
+```bash
+export ASPNETCORE_ENVIRONMENT=Production
+export ADMIN_PASSWORD="SuaSenh@Forte123!"
+dotnet run --project src/AssistenciaTecnica.Web
+```
+
+### Com Docker
+```bash
+export MYSQL_ROOT_PASSWORD="senha_root_segura"
+export MYSQL_PASSWORD="senha_app_segura"
+export ADMIN_PASSWORD="SuaSenh@Forte123!"
+docker-compose up -d
+```
+
+### Endpoints de Monitoramento
+
+| Endpoint | Descrição |
+|----------|-----------|
+| `GET /health` | Health check (verifica conexão com banco) |
+
+### Logs (Serilog)
+
+Os logs são gravados em:
+- **Console**: Sempre ativo
+- **Arquivo**: `logs/app-{data}.log` (rotação diária, últimos 7 dias)
+
+Para produção, os logs vão para `/var/log/assistencia/` com retenção de 30 dias.
+
+### Rate Limiting
+
+Proteção contra força bruta nos endpoints sensíveis:
+
+| Endpoint | Limite | Janela |
+|----------|--------|--------|
+| `POST /Account/Login` | 5 requisições | 1 minuto |
+| `POST /Account/Register` | 3 requisições | 5 minutos |
+
+Quando o limite é excedido, retorna HTTP 429 (Too Many Requests).
+
 ## Próximas Tarefas
 
 ### Correções para Produção
-- [ ] Senha do admin via variável de ambiente (não hardcoded)
-- [ ] Email do admin configurável
-- [ ] Proteger seed de dados com flag de ambiente
-- [ ] MySQL como banco padrão em produção
-- [ ] Restringir AllowedHosts
-- [ ] HTTPS redirect
-- [ ] Rate limiting no login
-- [ ] Logging estruturado (Serilog)
-- [ ] Health check endpoint
-- [ ] Adicionar .db ao .gitignore
+- [x] Senha do admin via variável de ambiente (não hardcoded)
+- [x] Email do admin configurável
+- [x] Proteger seed de dados com flag de ambiente
+- [x] MySQL como banco padrão em produção (configurável via appsettings)
+- [x] Restringir AllowedHosts
+- [x] HTTPS redirect
+- [x] Rate limiting no login
+- [x] Logging estruturado (Serilog)
+- [x] Health check endpoint
+- [x] Adicionar .db ao .gitignore
+- [x] Catch blocks com logging (4 ocorrências corrigidas)
+- [x] Página de erro profissional
+- [x] Testes de integração
 
 ### NFS-e (Nota Fiscal de Serviço Eletrônica) - MEI - Salvador/BA
 - [x] Definir município do MEI → Salvador (sistema municipal SMS)

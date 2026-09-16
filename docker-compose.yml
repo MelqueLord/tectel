@@ -5,10 +5,10 @@ services:
     image: mysql:8.0
     container_name: assistencia-mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: assistencia_tecnica
-      MYSQL_USER: assistencia
-      MYSQL_PASSWORD: assistencia123
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-assistencia_tecnica}
+      MYSQL_USER: ${MYSQL_USER:-assistencia}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-assistencia123}
     ports:
       - "3306:3306"
     volumes:
